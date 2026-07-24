@@ -12,7 +12,7 @@ research
 
 **Data and code availability:** All data are public (CDC NHANES; USDA ARS FPED
 and FNDDS). Analysis code, the protocol amendment log, artefact checksums and
-provenance records are available at [repository URL]. The full pipeline rebuilds
+provenance records are available at https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic. The full pipeline rebuilds
 every reported number from raw public files with a single command.
 
 ---

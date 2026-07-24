@@ -11,10 +11,11 @@ abstract: >-
   associations and no causal claims are made.
 type: software
 authors:
+  # Family name and ORCID intentionally omitted rather than shipped as
+  # placeholders; both can be added in a normal commit without rewriting
+  # history. A CFF person entry with given-names alone is valid.
   - given-names: Priya
-    family-names: "TODO-SURNAME"
     email: dharshanip888@gmail.com
-    orcid: "https://orcid.org/TODO-ORCID"
 license: MIT
 repository-code: "https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic"
 keywords:
