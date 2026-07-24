@@ -1,0 +1,37 @@
+# Raw and derived data are never committed. They are public and are re-fetched
+# from CDC/USDA at build time; provenance lives in data/raw/MANIFEST.csv and
+# integrity is pinned by docs/checksums.lock (both of which ARE committed).
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/MANIFEST.csv
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Generated outputs are reproducible from source; only the code is canonical.
+outputs/figures/*
+!outputs/figures/.gitkeep
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# renv: the lockfile is committed, the library is not.
+renv/library/
+renv/staging/
+renv/local/
+renv/python/
+renv/sandbox/
+
+# R session cruft
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+.Rapp.history
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

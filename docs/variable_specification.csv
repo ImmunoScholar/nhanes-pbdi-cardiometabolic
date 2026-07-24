@@ -1,0 +1,60 @@
+source_file,nhanes_var,units,name_status,transformation,derived_var,role,inclusion,justification
+P_DEMO,SEQN,id,VERIFIED,none,seqn,key,include,Primary merge key across all NHANES files.
+P_DEMO,WTINTPRP,weight,VERIFIED,none,wt_int,design,include,Full-sample interview weight; used only for interview-only descriptive checks.
+P_DEMO,WTMECPRP,weight,VERIFIED,none,wt_mec,design,include,Full-sample MEC exam weight; comparator in weight-sensitivity analysis.
+P_DEMO,SDMVSTRA,stratum,VERIFIED,none,strata,design,include,Masked variance pseudo-stratum; required for design-based variance.
+P_DEMO,SDMVPSU,psu,VERIFIED,none,psu,design,include,Masked variance pseudo-PSU; required for design-based variance.
+P_DEMO,RIDSTATR,code,EXPECTED,none,exam_status,filter,include,Interview+MEC status; MEC examination required for all outcome components.
+P_DEMO,RIDAGEYR,years,VERIFIED,none,age_years,covariate,include,DAG confounder: causes both diet choice and cardiometabolic physiology. Also age>=20 inclusion filter.
+P_DEMO,RIAGENDR,code,VERIFIED,factor(Male/Female),sex,covariate,include,DAG confounder; also the standardisation stratum for the composite outcome.
+P_DEMO,RIDRETH3,code,VERIFIED,factor 6-level incl NH Asian,race_eth,covariate,include,DAG confounder modelled as a SOCIAL variable (proxy for structural exposures). RIDRETH3 not RIDRETH1 because NH Asian must be identifiable.
+P_DEMO,DMDEDUC2,code,VERIFIED,factor 3-level (<HS/HS/>HS),education3,covariate,include,Observed child of latent SES; partially blocks the SES backdoor path.
+P_DEMO,INDFMPIR,ratio,VERIFIED,continuous; topcode 5 retained,pir,covariate,include,Second observed child of latent SES; income and education capture distinct SES dimensions.
+P_DEMO,RIDEXPRG,code,EXPECTED,none,pregnant,filter,include,Pregnancy exclusion; pregnancy alters every outcome biomarker.
+P_DR1TOT,WTDRD1PP,weight,VERIFIED,none,wt_diet1,design,include,Day-1 dietary weight; primary weight in the pre-specified weight-sensitivity analysis.
+P_DR1TOT,WTDR2DPP,weight,VERIFIED,none,wt_diet2,design,include,Two-day dietary weight; used for the replicate subsample in regression calibration.
+P_DR1TOT,DR1DRSTZ,code,VERIFIED,none,recall1_status,filter,include,Recall reliability flag; only status==1 (reliable and met minimum criteria) is analysable.
+P_DR1TOT,DR1DAY,code,VERIFIED,factor weekend/weekday,recall1_day,covariate,include,Cause of MEASURED exposure only (no arrow to outcome). Enters the calibration model to reduce exposure error variance.
+P_DR1TOT,DR1TKCAL,kcal/day,EXPECTED,continuous,energy1_kcal,covariate,include,DAG confounder AND the conditioning variable that makes substitution models isocaloric. Dual justification.
+P_DR2TOT,DR2DRSTZ,code,EXPECTED,none,recall2_status,filter,include,Day-2 reliability flag; defines the replicate subsample for calibration.
+P_DR2TOT,DR2DAY,code,EXPECTED,factor weekend/weekday,recall2_day,covariate,include,Day-2 weekday; mode and day differ systematically between recalls and must be adjusted before estimating the reliability ratio.
+P_DR2TOT,DR2TKCAL,kcal/day,EXPECTED,continuous,energy2_kcal,covariate,include,Day-2 energy; used for 2-day mean exposure and implausible-reporter screening.
+P_DR1IFF,DR1IFDCD,code,VERIFIED,none,food_code1,key,include,USDA food code; join key to FPED and to the WWEIA category crosswalk.
+P_DR1IFF,DR1IGRMS,grams,VERIFIED,scale FPED by grams/100,grams1,derivation,include,FPED values are per 100 g; gram weight is required to convert to consumed pattern equivalents.
+P_DR2IFF,DR2IFDCD,code,EXPECTED,none,food_code2,key,include,Day-2 food code; same join logic as day 1.
+P_DR2IFF,DR2IGRMS,grams,EXPECTED,scale FPED by grams/100,grams2,derivation,include,Day-2 gram weight.
+P_BMX,BMXWAIST,cm,EXPECTED,z-score within sex,waist_cm,outcome,include,Component 1 of the primary composite; central adiposity.
+P_BMX,BMXBMI,kg/m2,EXPECTED,continuous,bmi,mediator,exclude_primary,DAG mediator on hPDI->Adiposity->CMD. Adjusting in the primary model would remove part of the effect of interest. Secondary mediator-adjusted model only.
+P_BPXO,BPXOSY1,mmHg,VERIFIED,mean of readings 2-3,sbp_mean,outcome,include,Reading 1 discarded per convention (white-coat effect); mean of readings 2 and 3 used.
+P_BPXO,BPXOSY2,mmHg,VERIFIED,mean of readings 2-3,sbp_mean,outcome,include,See BPXOSY1.
+P_BPXO,BPXOSY3,mmHg,VERIFIED,mean of readings 2-3,sbp_mean,outcome,include,See BPXOSY1.
+P_BPXO,BPXODI1,mmHg,VERIFIED,mean of readings 2-3,dbp_mean,outcome,include,See BPXOSY1.
+P_BPXO,BPXODI2,mmHg,VERIFIED,mean of readings 2-3,dbp_mean,outcome,include,See BPXOSY1.
+P_BPXO,BPXODI3,mmHg,VERIFIED,mean of readings 2-3,dbp_mean,outcome,include,See BPXOSY1.
+P_BPXO,derived,mmHg,DERIVED,dbp + (sbp-dbp)/3; z within sex,map_mmhg,outcome,include,Component 2 of composite. Mean arterial pressure preferred over SBP alone: single summary, avoids double-counting correlated SBP/DBP.
+P_TRIGLY,LBXTR,mg/dL,VERIFIED,natural log; z within sex,log_tg,outcome,include,Component 3 of composite. Log-transformed: right-skewed by construction.
+P_TRIGLY,WTSAFPRP,weight,VERIFIED,none,wt_fast,design,include,PRIMARY analysis weight. NHANES least-common-denominator rule; fasting subsample expected to be the binding constraint (verified empirically in QC).
+P_HDL,LBDHDD,mg/dL,EXPECTED,sign-reversed; z within sex,hdl_rev,outcome,include,Component 4 of composite. Sign reversed so that higher = worse, matching all other components.
+P_GLU,LBXGLU,mg/dL,VERIFIED,natural log; z within sex,log_glucose,outcome,include,Component 5 of composite. Fasting glucose; log-transformed for right skew.
+P_INS,LBXIN,uU/mL,VERIFIED,HOMA-IR = ins*glu/405; log,log_homa_ir,outcome_secondary,include,Secondary outcome. Mechanistic insulin-resistance proxy; fasting subsample only.
+P_GHB,LBXGH,percent,EXPECTED,continuous,hba1c_pct,outcome_secondary,include,Secondary outcome. Integrated glycaemia; not fasting-dependent.
+P_HSCRP,LBXHSCRP,mg/L,EXPECTED,natural log,log_hscrp,outcome_secondary,include,Secondary outcome. Systemic inflammation axis; expected to load on a distinct PCA component.
+P_BIOPRO,LBXSATSI,U/L,EXPECTED,natural log,log_alt,outcome_secondary,include,Secondary outcome. Hepatic steatosis proxy.
+P_SMQ,SMQ020,code,EXPECTED,factor never/former/current,smoking3,covariate,include,DAG confounder via latent health-behaviour orientation; independent arrow to outcome.
+P_SMQ,SMQ040,code,EXPECTED,factor never/former/current,smoking3,covariate,include,Combined with SMQ020 to derive 3-level smoking status.
+P_ALQ,ALQ121,code,EXPECTED,drinks/day category,alcohol_cat,covariate,include,DAG confounder; also independent effect on triglycerides and blood pressure.
+P_ALQ,ALQ130,drinks/day,EXPECTED,continuous,alcohol_dpd,covariate,include,Quantity component of alcohol exposure.
+P_PAQ,PAQ605:PAD675,minutes,VERIFIED,MET-min/week (GPAQ scoring),met_min_wk,covariate,include,DAG confounder; also an independent cause of adiposity and of the outcome. Amendment 1: range corrected from PAQ605:PAQ680 (PAQ680 does not exist).
+P_PAQ,PAD680,minutes,VERIFIED,none,sedentary_min,covariate,exclude_primary,Sedentary time is a distinct construct from physical activity and was NOT pre-specified in the frozen covariate set. Present in the data; deliberately unused. Recorded here so its exclusion is a documented decision rather than an oversight.
+P_DSQTOT,DSDCOUNT,count,EXPECTED,binary any/none,supplement_any,covariate,include,DAG confounder via health-behaviour orientation; direct effect on several biomarkers.
+P_DIQ,DIQ010,code,EXPECTED,binary,diabetes_dx,exclusion_sensitivity,exclude_primary,DAG: descendant of the outcome that also causes the exposure (reverse causation). Conditioning would open bias. Handled by exclusion sensitivity ONLY.
+P_MCQ,MCQ160B:MCQ160F,code,EXPECTED,binary any CVD,cvd_dx,exclusion_sensitivity,exclude_primary,Same DAG logic as diabetes_dx.
+P_BPQ,BPQ040A,code,EXPECTED,binary,bp_med,measurement_adjust,include,Descendant of outcome affecting MEASURED BP. No unbiased option exists; three pre-specified handlings all reported.
+P_BPQ,BPQ050A,code,EXPECTED,binary,bp_med,measurement_adjust,include,Currently taking antihypertensive medication.
+P_BPQ,BPQ090D,code,EXPECTED,binary,lipid_med,measurement_adjust,include,Told to take cholesterol-lowering medication.
+P_BPQ,BPQ100D,code,EXPECTED,binary,lipid_med,measurement_adjust,include,Currently taking cholesterol-lowering medication.
+P_RXQ_RX,RXDDRGID,code,EXPECTED,map to ATC-like classes,med_class,measurement_adjust,include,Prescription-level source; cross-checks the self-reported BPQ/DIQ medication flags.
+P_WHQ,WHQ070,code,EXPECTED,binary,tried_lose_wt,exclusion_sensitivity,exclude_primary,Recent intentional weight loss changes both diet and biomarkers; exclusion sensitivity only.
+FPED_1720.xls,food_code,code,TO_VERIFY,none,fped_food_code,key,include,Join key to DR1IFDCD/DR2IFDCD. Exact column name to be confirmed on first read.
+FPED_1720.xls,F_TOTAL:PF_TOTAL,equivalents/100g,TO_VERIFY,scale by grams/100 then sum to person-day,fped_*,exposure,include,Source of 15 of the 18 PDI food groups.
+WWEIA_crosswalk,food_code -> category,code,TO_VERIFY,map to PDI groups,wweia_cat,exposure,include,REQUIRED for SSB, tea/coffee, and sweets/desserts. P_DR1IFF contains no WWEIA category variable (DR1CCMTX is combination-food type, not a category).

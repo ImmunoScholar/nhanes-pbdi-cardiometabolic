@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "Plant-based diet quality and cardiometabolic dysfunction in US adults: a reproducible survey-weighted analysis of NHANES 2017-March 2020"
+abstract: >-
+  A fully reproducible, survey-weighted, cross-sectional analysis of plant-based
+  diet quality (PDI/hPDI/uPDI) and cardiometabolic dysfunction among US adults,
+  using NHANES 2017-March 2020 pre-pandemic data and USDA FPED/FNDDS. The
+  analysis combines isocaloric food-group substitution modelling within the
+  plant-based diet index framework with regression calibration for within-person
+  24-hour recall measurement error. The study is observational; all estimates are
+  associations and no causal claims are made.
+type: software
+authors:
+  - given-names: Priya
+    family-names: "TODO-SURNAME"
+    email: dharshanip888@gmail.com
+    orcid: "https://orcid.org/TODO-ORCID"
+license: MIT
+repository-code: "https://github.com/TODO-USER/nhanes-pbdi-cardiometabolic"
+keywords:
+  - nutritional epidemiology
+  - plant-based diet index
+  - NHANES
+  - cardiometabolic risk
+  - measurement error
+  - substitution analysis
+  - reproducible research
+  - survey-weighted analysis
+references:
+  - type: data
+    title: "National Health and Nutrition Examination Survey 2017-March 2020 Pre-Pandemic Data Files"
+    authors:
+      - name: "National Center for Health Statistics, Centers for Disease Control and Prevention"
+    url: "https://wwwn.cdc.gov/nchs/nhanes/"
+  - type: data
+    title: "Food Patterns Equivalents Database 2017-March 2020 Prepandemic"
+    authors:
+      - name: "Food Surveys Research Group, Agricultural Research Service, US Department of Agriculture"
+    url: "https://www.ars.usda.gov/nea/bhnrc/fsrg"
+  - type: data
+    title: "Food and Nutrient Database for Dietary Studies (FNDDS) 2017-2018 and 2019-2020, At A Glance: Foods and Beverages"
+    authors:
+      - name: "Food Surveys Research Group, Agricultural Research Service, US Department of Agriculture"
+    url: "https://www.ars.usda.gov/nea/bhnrc/fsrg"
+  - type: article
+    title: "Plant-Based Dietary Patterns and Incidence of Type 2 Diabetes in US Men and Women: Results from Three Prospective Cohort Studies"
+    authors:
+      - family-names: Satija
+        given-names: Ambika
+    doi: "10.1371/journal.pmed.1002039"
+    year: 2016
+    journal: "PLoS Medicine"
