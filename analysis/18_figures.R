@@ -1,11 +1,17 @@
 # ---------------------------------------------------------------------------
 # 18_figures.R
 # Generate every manuscript figure directly from stored analysis objects.
-# Base graphics only -- no plotting package is added to the locked environment.
+#
+# Presentation only: this script reads results, it never estimates anything.
+# Every figure is written as a 600 dpi raster (ragg) and as a vector file
+# (svglite), at journal column widths.
 # ---------------------------------------------------------------------------
 
-suppressPackageStartupMessages({ library(here) })
+suppressPackageStartupMessages({
+  library(here); library(ggplot2); library(scales); library(patchwork)
+})
 source(here::here("R", "utils.R"))
+source(here::here("R", "theme_manuscript.R"))
 
 int_dir <- here::here("data", "interim")
 tab_dir <- here::here("outputs", "tables")
@@ -17,105 +23,208 @@ log_msg("=== 18_figures.R start ===", logfile = logfile)
 sens <- readRDS(file.path(int_dir, "sensitivity.rds"))
 sub  <- readRDS(file.path(int_dir, "substitution.rds"))
 pca  <- readRDS(file.path(int_dir, "pca.rds"))
-cal  <- readRDS(file.path(int_dir, "calibration.rds"))
+exp_ <- readRDS(file.path(int_dir, "exposure_pdi.rds"))
 
-PT <- 200   # resolution
+XLAB <- expression(paste("Difference in cardiometabolic dysfunction score (SD) per SD higher hPDI"))
+DIRN <- "← lower dysfunction        higher dysfunction →"
 
-forest <- function(labels, est, lo, hi, xlab, main, ref = NULL,
-                   highlight = 1, xlim = NULL) {
-  n <- length(est); y <- rev(seq_len(n))
-  if (is.null(xlim)) {
-    r <- range(c(lo, hi, 0), na.rm = TRUE); pad <- diff(r) * 0.08
-    xlim <- c(r[1] - pad, r[2] + pad)
-  }
-  par(mar = c(4.5, 17, 3, 1.5), xpd = FALSE)
-  plot(NA, xlim = xlim, ylim = c(0.4, n + 0.6), axes = FALSE,
-       xlab = xlab, ylab = "", main = main)
-  abline(v = 0, col = "grey55", lty = 2)
-  if (!is.null(ref)) abline(v = ref, col = "grey80", lty = 3)
-  segments(lo, y, hi, y, lwd = 2,
-           col = ifelse(seq_len(n) %in% highlight, "black", "grey35"))
-  points(est, y, pch = ifelse(seq_len(n) %in% highlight, 18, 16),
-         cex = ifelse(seq_len(n) %in% highlight, 1.9, 1.25),
-         col = ifelse(seq_len(n) %in% highlight, "black", "grey20"))
-  axis(1); axis(2, at = y, labels = labels, las = 1, tick = FALSE, cex.axis = 0.82)
-  box(bty = "l")
-}
-
-# --- Figure 1: sensitivity audit forest -----------------------------------
+# --- F1: sensitivity audit -------------------------------------------------
 a <- sens$audit
-png(file.path(fig_dir, "F1_sensitivity_forest.png"), width = 2100, height = 1500, res = PT)
-forest(a$analysis, a$beta, a$ci_low <- as.numeric(sub(" to.*", "", a$ci)),
-       a$ci_high <- as.numeric(sub(".*to ", "", a$ci)),
-       xlab = "Difference in cardiometabolic dysfunction score (SD) per SD higher hPDI",
-       main = "Primary estimate and pre-specified sensitivity analyses",
-       ref = a$beta[1], highlight = 1)
-dev.off()
+a$ci_low  <- as.numeric(sub(" to.*", "", a$ci))
+a$ci_high <- as.numeric(sub(".*to ", "", a$ci))
+a$label   <- sprintf("%s  (n = %s)", sub("^[0-9a-c]+\\. ", "", a$analysis),
+                     format(a$n, big.mark = ","))
+a$flag    <- a$analysis == "PRIMARY (reference)"
+a$family  <- c("Primary", "Survey weight",
+               rep("Reverse causation", 3), rep("Medication handling", 3),
+               "Exposure scoring", "Energy reporting")
+a$family  <- factor(a$family, levels = c("Primary", "Survey weight",
+                                         "Reverse causation", "Medication handling",
+                                         "Exposure scoring", "Energy reporting"))
+
+a$estimate <- a$beta
+PRIMARY_REF <- a$beta[1]
+
+f1 <- forest_gg(a, xlab = XLAB, ref = PRIMARY_REF,
+  title = "Primary estimate and pre-specified sensitivity analyses",
+  subtitle = paste("Every pre-specified analysis is shown, whether or not it was",
+                   "favourable.\nAll intervals overlap the primary estimate and no",
+                   "inference changes."),
+  caption = paste0(DIRN,
+    "\nDotted line, primary estimate; dashed line, null. Survey-weighted linear",
+    " regression, m = 20 imputations pooled by Rubin's rules."),
+  facet = TRUE)
+save_fig(f1, "F1_sensitivity_forest", W_DOUBLE, 5.4)
 log_msg("F1 written", logfile = logfile)
 
-# --- Figure 2: pre-specified substitutions --------------------------------
+# --- F2: pre-specified substitutions --------------------------------------
 p <- sub$prespec
-lab <- sprintf("%s → %s (%s)", p$from, p$to, p$unit)
-png(file.path(fig_dir, "F2_substitution_forest.png"), width = 2100, height = 1200, res = PT)
-forest(lab, p$estimate, p$ci_low, p$ci_high,
-       xlab = "Difference in cardiometabolic dysfunction score (SD) per unit substituted",
-       main = "Pre-specified isocaloric food-group substitutions",
-       highlight = which(p$p_fdr < 0.05))
-dev.off()
+nice <- c(whole_grains = "Whole grains", fruits = "Whole fruit",
+          vegetables = "Vegetables", nuts = "Nuts", legumes = "Legumes",
+          vegetable_oils = "Vegetable oils", tea_coffee = "Tea and coffee",
+          fruit_juices = "Fruit juice", refined_grains = "Refined grains",
+          potatoes = "Potatoes", ssb = "Sugar-sweetened beverages",
+          sweets_desserts = "Sweets and desserts", animal_fat = "Animal fat",
+          dairy = "Dairy", eggs = "Eggs", fish_seafood = "Fish and seafood",
+          meat = "Meat")
+p$label <- sprintf("%s → %s\n(%s)", nice[p$from], nice[p$to], p$unit)
+p$flag  <- p$p_fdr < 0.05
+p <- p[order(p$estimate), ]
+
+f2 <- forest_gg(p,
+  xlab = "Difference in cardiometabolic dysfunction score (SD) per unit substituted",
+  title = "Pre-specified isocaloric food-group substitutions",
+  subtitle = paste("Holding total energy constant. Filled diamonds survive",
+                   "Benjamini–Hochberg control at 5%."),
+  caption = paste0(DIRN,
+    "\nEstimates are differences of coefficients from a single model containing",
+    " all 17 food groups, total energy and covariates.\nWide intervals for fruit",
+    " juice and potatoes reflect low power, not evidence of no association:",
+    " 76% of participants\nreported no legumes on the recall day."))
+save_fig(f2, "F2_substitution_forest", W_DOUBLE, 3.6)
 log_msg("F2 written", logfile = logfile)
 
-# --- Figure 3: PCA loadings + scree ---------------------------------------
-L <- pca$loadings; ret <- pca$retention
-png(file.path(fig_dir, "F3_pca.png"), width = 2200, height = 1100, res = PT)
-layout(matrix(1:2, 1, 2), widths = c(1.15, 1))
-par(mar = c(4.5, 9, 3, 1))
-cols <- colorRampPalette(c("white", "grey20"))(100)
-image(x = seq_len(ncol(L)), y = seq_len(nrow(L)), z = t(abs(L))[, nrow(L):1],
-      col = cols, axes = FALSE, xlab = "", ylab = "",
-      main = "Rotated loadings (|value|)")
-axis(1, at = seq_len(ncol(L)), labels = colnames(L), tick = FALSE)
-axis(2, at = seq_len(nrow(L)), labels = rev(rownames(L)), las = 1,
-     tick = FALSE, cex.axis = 0.8)
-for (i in seq_len(nrow(L))) for (j in seq_len(ncol(L)))
-  text(j, nrow(L) - i + 1, sprintf("%.2f", L[i, j]),
-       col = ifelse(abs(L[i, j]) > 0.55, "white", "black"), cex = 0.8)
-par(mar = c(4.5, 4.5, 3, 1))
-plot(ret$component, ret$eigenvalue, type = "b", pch = 16,
-     ylim = c(0, max(ret$eigenvalue) * 1.05),
-     xlab = "Component", ylab = "Eigenvalue", main = "Scree with PA thresholds")
-lines(ret$component, ret$pa_threshold_nominal_n, type = "b", pch = 1, lty = 2)
-lines(ret$component, ret$pa_threshold_effective_n, type = "b", pch = 2, lty = 3)
-legend("topright", bty = "n", cex = 0.8, pch = c(16, 1, 2), lty = c(1, 2, 3),
-       legend = c("observed", "PA (nominal n)", "PA (effective n)"))
-dev.off()
+# --- F3: all-components model, 17 food groups ------------------------------
+cf <- sub$coef_tab
+cf$label <- sprintf("%s  (%s)", nice[cf$pdi_group], cf$unit)
+cf$flag  <- cf$ci_low > 0 | cf$ci_high < 0
+cf$family <- factor(cf$class,
+                    levels = c("healthy_plant", "unhealthy_plant", "animal"),
+                    labels = c("Healthy plant foods", "Less-healthy plant foods",
+                               "Animal foods"))
+cf <- cf[order(cf$family, cf$beta), ]
+cf$estimate <- cf$beta
+
+f3 <- forest_gg(cf,
+  xlab = "Difference in cardiometabolic dysfunction score (SD) per unit/day",
+  title = "Individual food-group associations from the all-components model",
+  subtitle = "Mutually exclusive groups; every edible gram contributes exactly once.",
+  caption = paste0(DIRN,
+    "\nUnits differ across groups and are shown beside each label; coefficients",
+    " are NOT comparable across units. Vegetable oils and animal fat are\nexpressed",
+    " per 100 g, an unusually large serving, which is why their intervals are the",
+    " widest on the plot."),
+  facet = TRUE)
+save_fig(f3, "F3_food_group_coefficients", W_DOUBLE, 5.8)
 log_msg("F3 written", logfile = logfile)
 
-# --- Figure 4: measurement-error calibration ------------------------------
-cr <- read.csv(file.path(tab_dir, "10_calibration_results.csv"))
-cr <- cr[cr$quantity != "lambda (reliability ratio)", ]
-png(file.path(fig_dir, "F4_calibration.png"), width = 1900, height = 900, res = PT)
-forest(c("Naive (single day-1 recall)", "Regression-calibrated"),
-       cr$estimate, cr$ci_low, cr$ci_high,
-       xlab = "Difference in cardiometabolic dysfunction score (SD) per SD higher hPDI",
-       main = "Effect of correcting for within-person recall error",
-       highlight = 2)
-dev.off()
+# --- F4: PCA loadings and scree -------------------------------------------
+L <- pca$loadings
+ld <- data.frame(
+  biomarker = rep(rownames(L), ncol(L)),
+  component = rep(colnames(L), each = nrow(L)),
+  loading   = as.vector(L))
+pretty_bm <- c(waist = "Waist circumference", log_tg = "Triglycerides (log)",
+               hdl_rev_log = "HDL-C (reversed, log)", log_glucose = "Fasting glucose (log)",
+               map = "Mean arterial pressure", log_homa_ir = "HOMA-IR (log)",
+               log_hba1c = "HbA1c (log)", log_hscrp = "hs-CRP (log)",
+               log_alt = "ALT (log)")
+ld$biomarker <- factor(pretty_bm[ld$biomarker],
+                       levels = rev(pretty_bm[rownames(L)]))
+ld$component <- factor(ld$component,
+                       labels = c("PC1\nAdiposity–lipid–inflammation",
+                                  "PC2\nGlycaemic")[seq_len(ncol(L))])
+
+pA <- ggplot(ld, aes(component, biomarker, fill = loading)) +
+  geom_tile(colour = "white", linewidth = 0.8) +
+  geom_text(aes(label = sprintf("%.2f", loading),
+                colour = abs(loading) > 0.55), size = 2.9,
+            family = BASE_FONT, show.legend = FALSE) +
+  scale_colour_manual(values = c(`TRUE` = "white", `FALSE` = "grey20")) +
+  scale_fill_gradient2(low = unname(OI["vermillion"]), mid = "white",
+                       high = ACCENT, midpoint = 0, limits = c(-1, 1),
+                       name = "Rotated loading") +
+  labs(x = NULL, y = NULL, title = "Rotated component loadings") +
+  theme_heatmap() +
+  theme(legend.position = "bottom", legend.key.width = unit(1.4, "lines"))
+
+ret <- pca$retention
+sc <- data.frame(
+  component = rep(ret$component, 3),
+  value = c(ret$eigenvalue, ret$pa_threshold_nominal_n, ret$pa_threshold_effective_n),
+  series = rep(c("Observed", "Parallel analysis (nominal n)",
+                 "Parallel analysis (effective n)"), each = nrow(ret)))
+sc$series <- factor(sc$series, levels = unique(sc$series))
+
+pB <- ggplot(sc, aes(component, value, colour = series, linetype = series,
+                     shape = series)) +
+  geom_line(linewidth = 0.5) + geom_point(size = 1.8) +
+  scale_colour_manual(values = c(ACCENT, MUTED, MUTED), name = NULL) +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"), name = NULL) +
+  scale_shape_manual(values = c(16, 1, 2), name = NULL) +
+  scale_x_continuous(breaks = ret$component) +
+  labs(x = "Component", y = "Eigenvalue",
+       title = "Scree plot with retention thresholds") +
+  theme_manuscript() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3),
+        legend.position = "bottom", legend.direction = "vertical",
+        legend.key.height = unit(0.7, "lines"))
+
+f4 <- (pA | pB) + plot_annotation(
+  tag_levels = "A",
+  title = "Biomarker principal component analysis (exploratory)",
+  caption = paste("Two components were retained at both the nominal (n = 3,269)",
+                  "and the effective (n = 1,162) sample size; Kaiser's criterion",
+                  "would have retained three.\nParallel analysis has no",
+                  "survey-weighted implementation: it generates its null at the",
+                  "nominal n and therefore tends to over-retain, so it is used as",
+                  "a heuristic\nsupported by the scree plot and by whether a",
+                  "component is interpretable a priori."),
+  theme = theme_manuscript() +
+    theme(plot.title = element_text(face = "bold", size = rel(1.2)),
+          plot.caption = element_text(colour = "grey40", size = rel(0.78),
+                                      hjust = 0)))
+save_fig(f4, "F4_pca", W_DOUBLE, 4.6)
 log_msg("F4 written", logfile = logfile)
 
-# --- Figure 5: exposure distribution and day-1/day-2 agreement ------------
-exp <- readRDS(file.path(int_dir, "exposure_pdi.rds"))
-h <- merge(exp$pdi_day1[, c("SEQN", "hPDI")], exp$pdi_day2[, c("SEQN", "hPDI")],
-           by = "SEQN", suffixes = c("_d1", "_d2"))
-png(file.path(fig_dir, "F5_exposure_reliability.png"), width = 2000, height = 950, res = PT)
-par(mfrow = c(1, 2), mar = c(4.5, 4.5, 3, 1))
-hist(exp$pdi_day1$hPDI, breaks = 30, col = "grey80", border = "white",
-     xlab = "hPDI (day 1)", main = "Distribution of hPDI")
-plot(jitter(h$hPDI_d1), jitter(h$hPDI_d2), pch = 16, col = "#00000018",
-     xlab = "hPDI, day 1", ylab = "hPDI, day 2",
-     main = sprintf("Day-1 vs day-2 (r = %.2f)", cor(h$hPDI_d1, h$hPDI_d2)))
-abline(0, 1, col = "grey40", lty = 2)
-dev.off()
+# --- F5: measurement-error calibration ------------------------------------
+cr <- read.csv(file.path(tab_dir, "10_calibration_results.csv"))
+cr <- cr[cr$quantity != "lambda (reliability ratio)", ]
+cr$label <- c("Naive\n(single day-1 recall)", "Regression-calibrated\n(day-2 replicate)")
+cr$flag  <- c(FALSE, TRUE)
+
+f5 <- forest_gg(cr, xlab = XLAB,
+  title = "Correcting for within-person recall error",
+  subtitle = "Reliability ratio λ = 0.39; deattenuation factor 2.58",
+  caption = paste0(DIRN,
+    "\nWithin-person variance (23.4) exceeded between-person variance (14.9).",
+    " The correction is PARTIAL: recall error here is\ndifferential with respect",
+    " to adiposity, violating the classical assumption, so the corrected estimate",
+    " remains conservative."))
+save_fig(f5, "F5_calibration", W_DOUBLE, 2.9)
 log_msg("F5 written", logfile = logfile)
 
+# --- F6: exposure distribution and day-to-day reliability -----------------
+h <- merge(exp_$pdi_day1[, c("SEQN", "hPDI")], exp_$pdi_day2[, c("SEQN", "hPDI")],
+           by = "SEQN", suffixes = c("_d1", "_d2"))
+r <- cor(h$hPDI_d1, h$hPDI_d2)
+
+qA <- ggplot(exp_$pdi_day1, aes(hPDI)) +
+  geom_histogram(binwidth = 1, fill = ACCENT, colour = "white", linewidth = 0.2) +
+  labs(x = "hPDI, day 1", y = "Participants",
+       title = "Distribution of healthful plant-based diet index") +
+  theme_manuscript() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3))
+
+qB <- ggplot(h, aes(hPDI_d1, hPDI_d2)) +
+  geom_bin2d(bins = 34) +
+  scale_fill_gradient(low = "grey90", high = ACCENT, name = "Participants") +
+  geom_abline(slope = 1, intercept = 0, colour = "grey35", linetype = "dashed",
+              linewidth = 0.4) +
+  annotate("text", x = min(h$hPDI_d1) + 4, y = max(h$hPDI_d2) - 2,
+           label = sprintf("r = %.2f", r), family = BASE_FONT, size = 3.2,
+           colour = "grey15", fontface = "bold") +
+  labs(x = "hPDI, day 1", y = "hPDI, day 2",
+       title = "Day-to-day agreement (replicate subsample)",
+       caption = paste("n = 2,739. A single 24-hour recall captures less than",
+                       "half the reliable\nsignal in usual plant-based diet quality.")) +
+  theme_manuscript() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3))
+
+f6 <- (qA | qB) + plot_annotation(tag_levels = "A")
+save_fig(f6, "F6_exposure_reliability", W_DOUBLE, 3.4)
+log_msg("F6 written", logfile = logfile)
+
 log_msg("=== 18_figures.R complete ===", logfile = logfile)
-cat("figures written:\n"); print(list.files(fig_dir, pattern = "\\.png$"))
+cat("figures written (png + svg):\n")
+print(list.files(fig_dir, pattern = "^F[0-9]"))

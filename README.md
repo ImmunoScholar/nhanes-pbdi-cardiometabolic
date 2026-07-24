@@ -59,20 +59,29 @@ searchable during protocol development; that gap is documented, not concealed.
 
 | Script | Purpose |
 |---|---|
-| `00_dag.R` | Causal DAG; derives the minimal sufficient adjustment set |
-| `01_download.R` | Fetch public data; record SHA-256 provenance |
-| `02_import.R` | Read `.XPT`; validate against the frozen variable specification |
+| `00_dag.R` | Causal DAG; **derives** the adjustment set and halts if it disagrees with the protocol |
+| `01_download.R` | Fetch public data; pin and verify SHA-256 checksums |
+| `02_import.R` | Read `.XPT`; validate every variable name against the frozen specification |
 | `03_quality_control.R` | **Mandatory gate.** Seven check families; halts on any blocking failure |
-| `04_exposure_pdi.R` | PDI / hPDI / uPDI and HEI-2015 construction |
-| `05_outcome_composite.R` | Cardiometabolic dysfunction score |
-| `06_covariates.R` | Covariate harmonisation |
-| `07_missing_data.R` | Multiple imputation under the survey design |
-| `08_models_primary.R` | Primary survey-weighted models |
-| `09_models_substitution.R` | Isocaloric substitution models |
-| `10_calibration.R` | Regression calibration; reliability ratio |
-| `11_pca.R` | Biomarker PCA (retention criteria pre-specified) |
-| `12_sensitivity.R` | Pre-specified sensitivity analyses |
-| `13_figures_tables.R` | Publication-quality outputs |
+| `04_wweia_conflicts.R` | **Adjudication gate.** Halts on any FNDDS conflict that changes a PDI group |
+| `05_exposure_pdi.R` | PDI / hPDI / uPDI via hierarchical assignment; exclusive vs overlapping comparison |
+| `06_outcome_composite.R` | Cardiometabolic dysfunction score; three BP-medication variants |
+| `07_covariates.R` | Covariate harmonisation; analytic assembly; design effect and MDE |
+| `08_missing_data.R` | Multiple imputation (m = 20) under the survey design |
+| `09_models_primary.R` | Primary and secondary survey-weighted models, pooled by Rubin's rules |
+| `10_calibration.R` | Regression calibration for within-person recall error |
+| `11_collinearity_check.R` | **Gate.** Condition numbers and VIF before any substitution contrast |
+| `12_models_substitution.R` | Isocaloric food-group substitution (lead contribution) |
+| `13_pca.R` | Biomarker PCA; components named and committed before association testing |
+| `14_pca_associations.R` | Axis-specific associations under the pre-registered interpretation rule |
+| `15_sensitivity.R` | Nine pre-specified sensitivity analyses; single audit table |
+| `16_mediation_exploratory.R` | Exploratory adiposity-pathway analysis (no proportion mediated) |
+| `17_tables.R` | All manuscript tables, generated from stored objects |
+| `18_figures.R` | All manuscript figures, base graphics only |
+| `19_freeze_provenance.R` | Freeze analytic dataset; hash artefacts; write provenance record |
+
+Manuscript text lives in `docs/manuscript/` (Methods, Results, Discussion), with
+`docs/reproducibility_checklist.md` and `docs/PROVENANCE.md` alongside.
 
 ## Frozen protocol
 

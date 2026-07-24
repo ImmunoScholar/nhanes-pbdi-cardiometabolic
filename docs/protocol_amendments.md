@@ -215,3 +215,35 @@ and is NOT a skip artefact -- its missingness is near-constant across age bands
 pre-specified sensitivity variants), but the imputation model -- and therefore
 every imputed covariate used in the primary analysis -- was contaminated. The
 correction is material.
+
+---
+
+## Amendment 6 — 2026-07-24 — PRESENTATION ONLY
+
+**Trigger:** PI requested higher-quality manuscript figures.
+
+**Change:** eight packages added to the locked environment (ggplot2, scales,
+patchwork, ragg, systemfonts, textshaping, ggrepel, svglite) plus the
+`fonts-liberation` system font package. `analysis/18_figures.R` rewritten
+against a shared visual system in `R/theme_manuscript.R`; each figure is now
+emitted as a 600 dpi raster and as a vector file at journal column widths.
+A sixth figure was added showing the 17 individual food-group coefficients,
+which previously existed only as a CSV.
+
+**Estimand affected: none.** `18_figures.R` reads stored analysis objects and
+estimates nothing. No model, dataset, or reported number changes. Verified by
+comparing the re-run pipeline outputs against the originals: substitution
+estimates (-0.0300 / -0.0060 / -0.0027 / -0.0077 / -0.0234) and calibration
+results (-0.0646 / 0.3883 / -0.1665) are identical.
+
+**Process failure to record honestly:** the first `make verify` run was
+invalidated because `18_figures.R` was edited while that run was executing it.
+Verification must test a frozen pipeline; changing a file mid-run makes the
+result meaningless. Scripts 01-17 completed and reproduced identically before
+the break, but the run cannot be cited as a passing end-to-end verification.
+The pipeline was re-verified afterwards without modification.
+
+**Colour and accessibility note:** the Okabe-Ito palette is used throughout and
+no figure encodes information by colour alone -- position, shape, or text
+always carries it -- so all figures remain readable in greyscale and under
+colour-vision deficiency.
