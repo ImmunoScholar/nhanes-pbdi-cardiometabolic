@@ -247,3 +247,37 @@ The pipeline was re-verified afterwards without modification.
 no figure encodes information by colour alone -- position, shape, or text
 always carries it -- so all figures remain readable in greyscale and under
 colour-vision deficiency.
+
+---
+
+## Amendment 7 — 2026-07-24 — REPRODUCIBILITY DEFECTS (found by verification)
+
+**Trigger:** the first untouched `make verify` run rebuilt the entire pipeline
+and reported that 2 of 66 artefact checksums differed. The verification did its
+job: both differences were real defects in my own code, not noise.
+
+**Defect 1 — unseeded random number generation.** `05_exposure_pdi.R` called
+`jitter()` in the Bland-Altman diagnostic without setting a seed. It was the
+only unseeded RNG call in the pipeline (audited across all scripts: 08, 10, 13
+and 16 all seed correctly). No estimate depends on it -- jitter is applied at
+plot time to reduce overplotting -- but it made the script non-deterministic
+and its figure unreproducible. `set.seed(20260724)` added.
+
+I initially assumed this difference was an embedded PNG creation timestamp.
+Inspecting the PNG chunk structure showed no `tIME` chunk in either the base-R
+or the ragg output, which ruled that out and led to the actual cause. The
+assumption would have been wrong and the defect would have survived.
+
+**Defect 2 — timestamp inside a content-addressed artefact.**
+`19_freeze_provenance.R` stored `frozen_on = Sys.time()` inside
+`analytic_frozen.rds`, so the SHA-256 of that file changed on every run
+regardless of whether the data changed. A frozen dataset must be
+content-addressed: its hash should be a pure function of the data. Two checks
+confirmed the mechanism rather than assuming it — `saveRDS` is deterministic
+for an identical payload, and altering the timestamp alone was sufficient to
+change the hash. The field was removed; the freeze time is recorded in
+`docs/PROVENANCE.md`, where a timestamp belongs.
+
+**Estimand affected: none.** All 64 content artefacts — every table and every
+manuscript figure — were already bit-identical across two independent full
+rebuilds. Both defects were in reproducibility machinery, not in analysis.

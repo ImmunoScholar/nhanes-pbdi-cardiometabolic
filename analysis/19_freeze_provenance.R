@@ -31,7 +31,12 @@ frozen <- list(
     "Frozen analytic dataset for: plant-based diet quality and cardiometabolic",
     "dysfunction, NHANES 2017-March 2020 pre-pandemic. Observational,",
     "cross-sectional. All estimates are associations."),
-  frozen_on          = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
+  # NOTE: no timestamp is stored in this object. A frozen dataset should be
+  # CONTENT-ADDRESSED -- its hash must be a pure function of the data, so that
+  # two runs producing the same data produce the same hash. Embedding
+  # Sys.time() here made the hash change on every run and defeated the
+  # verification. The freeze time is recorded in docs/PROVENANCE.md, which is
+  # where a timestamp belongs.
   analytic_frame     = ad$analytic,
   completed_datasets = imp$completed,
   m_imputations      = imp$m,

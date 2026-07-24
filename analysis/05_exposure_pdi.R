@@ -28,6 +28,12 @@ tab_dir <- here::here("outputs", "tables")
 doc_dir <- here::here("docs")
 logfile <- file.path(log_dir, "05_exposure_pdi.log")
 
+# The Bland-Altman diagnostic below jitters points to reduce overplotting, which
+# draws on the RNG. No result depends on it, but an unseeded call makes the
+# script non-deterministic and its output figure unreproducible -- which is
+# exactly what the artefact-checksum verification is meant to detect.
+set.seed(20260724)
+
 log_msg("=== 05_exposure_pdi.R start ===", logfile = logfile)
 
 dat <- readRDS(file.path(int_dir, "nhanes_raw_list.rds"))

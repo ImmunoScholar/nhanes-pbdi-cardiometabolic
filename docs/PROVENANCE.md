@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-24 15:58:19 UTC
+Generated: 2026-07-24 16:43:30 UTC
 
 ## Study
 
@@ -10,15 +10,15 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `4181a9e4e7819405c41ada3acb4029d00c38ae21`
+- Commit: `2e52db11525e6acc2cfc7496e9e116a8cbea581e`
 - Branch: `main`
 - Working tree at freeze: **MODIFIED** (see below)
-  - `?? analysis/17_tables.R ?? analysis/18_figures.R ?? analysis/19_freeze_provenance.R ?? docs/artefact_checksums.csv`
+  - ` M docs/PROVENANCE.md  M docs/artefact_checksums.csv  M docs/package_versions.csv`
 
 ## Analytic dataset
 
 - File: `data/processed/analytic_frozen.rds`
-- SHA-256: `ceddad4648f5a3fbbbda69741ef8e31037fa29808baa73347345a6d9342a4293`
+- SHA-256: `5fd23bbc55d04c19abfa0c0507b02be618cd67b606613a427a07e71374de3471`
 - Analytic n: 3131
 - Imputations: m = 20
 - Exposure scoring rule: `zero_lowest`
@@ -34,7 +34,7 @@ All inputs are public and were fetched from CDC and USDA. Integrity is pinned in
 ## Environment
 
 - R: 4.6.1
-- Packages pinned in `renv.lock`: 77 (full list in `docs/package_versions.csv`)
+- Packages pinned in `renv.lock`: 92 (full list in `docs/package_versions.csv`)
 - Platform: x86_64-pc-linux-gnu
 
 ## Artefact checksums
