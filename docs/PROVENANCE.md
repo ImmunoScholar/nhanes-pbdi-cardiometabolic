@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-24 17:24:22 UTC
+Generated: 2026-07-24 18:03:06 UTC
 
 ## Study
 
@@ -10,10 +10,9 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `2fef32f8b164c6494306ec56b65fed883c44a025`
+- Commit: `9679b30c180c07d7080d5925e2b236e4d1802e15`
 - Branch: `main`
-- Working tree at freeze: **MODIFIED** (see below)
-  - ` M docs/PROVENANCE.md  M docs/artefact_checksums.csv`
+- Working tree at freeze: clean
 
 ## Analytic dataset
 
