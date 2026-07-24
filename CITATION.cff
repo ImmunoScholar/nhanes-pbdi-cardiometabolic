@@ -13,8 +13,10 @@ type: software
 authors:
   # No ORCID: the field is omitted rather than left as a placeholder, and can
   # be added later in a normal commit.
-  - given-names: "Priya Dharshani"
-    family-names: "V"
+  # Cites as "Priya Dharshani, V." -- citation styles render family-names
+  # first, so the compound name is the family name and V is the given initial.
+  - family-names: "Priya Dharshani"
+    given-names: "V"
     email: dharshanip888@gmail.com
 license: MIT
 repository-code: "https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic"
