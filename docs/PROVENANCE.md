@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-24 16:43:30 UTC
+Generated: 2026-07-24 17:24:22 UTC
 
 ## Study
 
@@ -10,15 +10,15 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `2e52db11525e6acc2cfc7496e9e116a8cbea581e`
+- Commit: `2fef32f8b164c6494306ec56b65fed883c44a025`
 - Branch: `main`
 - Working tree at freeze: **MODIFIED** (see below)
-  - ` M docs/PROVENANCE.md  M docs/artefact_checksums.csv  M docs/package_versions.csv`
+  - ` M docs/PROVENANCE.md  M docs/artefact_checksums.csv`
 
 ## Analytic dataset
 
 - File: `data/processed/analytic_frozen.rds`
-- SHA-256: `5fd23bbc55d04c19abfa0c0507b02be618cd67b606613a427a07e71374de3471`
+- SHA-256: `303bcbe0da07eb89196068d88b25b3c7a110491e9613ecc253a11e6528648969`
 - Analytic n: 3131
 - Imputations: m = 20
 - Exposure scoring rule: `zero_lowest`
