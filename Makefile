@@ -11,20 +11,31 @@
 .DELETE_ON_ERROR:
 SHELL := /bin/bash
 
-R := Rscript --vanilla
+# NOT --vanilla: that flag skips .Rprofile, which means renv never activates
+# and scripts silently resolve packages from the system library instead of the
+# pinned project library. --no-restore --no-save gives a clean session while
+# still loading the project profile.
+R := Rscript --no-restore --no-save
 
 RAW      := data/raw
 INTERIM  := data/interim
 LOGS     := outputs/logs
+TABLES   := outputs/tables
 
 MANIFEST := $(RAW)/MANIFEST.csv
 IMPORTED := $(INTERIM)/nhanes_raw_list.rds
 QCREPORT := $(LOGS)/03_qc_report.md
+DAG      := $(INTERIM)/dag.rds
 
-.PHONY: all download import qc clean clean-outputs deps help
+.PHONY: all dag download import qc clean clean-outputs deps help
 
 ## all: full pipeline through the quality-control gate
-all: qc
+all: qc dag
+
+## dag: encode the causal structure and validate the adjustment set
+dag: $(DAG)
+$(DAG): analysis/00_dag.R R/utils.R
+> $(R) analysis/00_dag.R
 
 ## deps: restore the pinned package library from renv.lock
 deps:
