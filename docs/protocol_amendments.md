@@ -101,3 +101,69 @@ number, or had comment codes flagged them invalid, the correct response would
 have been to exclude them and say so — not to widen the bound.
 
 **Estimand affected:** none.
+
+---
+
+## Amendment 4 — 2026-07-24 — SCORING RULE (approved by PI)
+
+**Trigger:** diagnostics showed that a single 24-hour recall is heavily
+zero-inflated, so plain weighted-quintile scoring collapsed most food groups
+(fish/seafood to 2 levels; nuts, legumes, fruit juices, SSB to 3) and — the
+decisive problem — assigned *different scores to identical behaviour*:
+a non-consumer scored 1 for vegetables, 2 for whole grains, 3 for fish, purely
+because of how common non-consumption is in that group. For an index that SUMS
+group scores this is incoherent.
+
+**Literature verification (requested before changing the rule).** No
+established convention exists. Checked the source paper and four NHANES
+implementations:
+
+| Study | Scale | Zero-inflation rule |
+|---|---|---|
+| Satija 2016, PLoS Med (FFQ) | quintiles 1-5 | none stated |
+| NHANES 2017-2018, fasting insulin (PMC10623701) | -5 to +5 | none stated |
+| Eur J Nutr 2023 NHANES (PMC10468921) | deciles 1-10 | none stated |
+| PLOS One gallstones (PMC11198842) | 0-5 | "lowest **or no** consumption received a 0" |
+| Subclinical CVD NHANES (PMC12206005) | quintiles 1-5 | explicitly absent |
+
+These disagree on both the number of categories and the scale. The only
+near-convention that appears is that non-consumers receive the lowest score.
+An FFQ asks about usual frequency over a year, so it never faced this problem;
+a single recall does.
+
+**Decision (PI-approved):** PRIMARY scoring rule is non-consumers -> category 1,
+consumers -> weighted quartiles 2-5. The plain weighted-quintile rule is
+retained as a PRE-SPECIFIED SENSITIVITY ANALYSIS, not discarded.
+
+**Cost, stated plainly:** for groups with few non-consumers this is effectively
+quartile rather than quintile scoring, a small loss of resolution.
+
+**Agreement between the two rules (n = 7,630):**
+
+| Score | Pearson | Spearman | Weighted kappa | Same quintile | Moved 1 | Moved >=2 |
+|---|---|---|---|---|---|---|
+| PDI  | 0.949 | 0.944 | 0.908 | 66.9% | 31.7% | 1.4% |
+| hPDI | 0.962 | 0.959 | 0.923 | 71.1% | 28.3% | 0.6% |
+| uPDI | 0.957 | 0.954 | 0.916 | 68.0% | 31.3% | 0.7% |
+
+Bland-Altman bias is -5.46 (PDI), +1.34 (hPDI), +1.08 (uPDI) with SD ~1.84.
+The level shift is expected and uninformative: the two rules anchor the scale
+differently. The meaningful quantities are rank agreement and
+cross-classification. Rank agreement is high (kappa > 0.90; moves of >=2
+quintiles under 1.5%), but ~30% of participants shift by one quintile, so the
+choice is not inconsequential at the individual level even though it is
+unlikely to change conclusions.
+
+**Implementation bugs found and fixed while making this change** (both caught
+by diagnostics, not by the code failing):
+1. `as.integer()` on a factor returns level CODES, not label values, so
+   `cut(..., labels = 2:5)` silently produced 1..4 and merged consumers into
+   the non-consumer category. Every group reported 4 levels instead of 5.
+   Now uses `labels = FALSE` with an explicit offset.
+2. Grouping distinct doubles via `factor()` / `tapply()` names round-trips
+   through character and either collides distinct values or fails to match.
+   Now grouped by integer index into `sort(unique(x))`.
+
+**Estimand affected:** yes — this changes the primary exposure values. Approved
+by the PI on 2026-07-24 with the plain-quintile implementation retained as a
+pre-specified sensitivity analysis.

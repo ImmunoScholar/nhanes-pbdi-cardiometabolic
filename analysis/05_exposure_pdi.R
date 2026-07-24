@@ -189,14 +189,55 @@ wtd_quintile <- function(x, w) {
   wv  <- as.numeric(tapply(w, factor(idx, levels = seq_along(u)), sum))
   wv[is.na(wv)] <- 0
   p   <- (cumsum(wv) - wv / 2) / sum(w)                 # midpoint of each block
-  q   <- as.integer(cut(p[idx], c(-Inf, .2, .4, .6, .8, Inf), labels = 1:5))
+  q   <- as.integer(cut(p[idx], c(-Inf, .2, .4, .6, .8, Inf), labels = FALSE))
   if (anyNA(q)) stop("wtd_quintile produced NA scores -- investigate before use.")
   q
 }
 
-score_pdi <- function(intake, samp) {
+# PRIMARY scoring rule: non-consumers -> category 1; consumers -> weighted
+# quartiles 2-5.
+#
+# Rationale (see docs/protocol_amendments.md, Amendment 4): a single 24-hour
+# recall is heavily zero-inflated for foods that are not eaten daily, which an
+# annual FFQ is not. Under plain quintile scoring the same behaviour -- eating
+# none of a food -- maps to different scores depending only on how common
+# non-consumption is in that group (score 1 for vegetables, 3 for fish), which
+# is incoherent for an index that SUMS group scores. No published NHANES PDI
+# implementation documents a rule for this; the only near-convention in the
+# literature is that non-consumers receive the lowest score, which is this rule.
+#
+# Cost, stated plainly: for groups with few non-consumers this is effectively
+# quartile rather than quintile scoring, a small loss of resolution.
+score_zero_lowest <- function(x, w) {
+  stopifnot(!anyNA(x), !anyNA(w))
+  q <- integer(length(x))
+  z <- x == 0
+  q[z] <- 1L
+  if (any(!z)) {
+    xc <- x[!z]; wc <- w[!z]
+    u   <- sort(unique(xc))
+    idx <- match(xc, u)
+    wv  <- as.numeric(tapply(wc, factor(idx, levels = seq_along(u)), sum))
+    wv[is.na(wv)] <- 0
+    p   <- (cumsum(wv) - wv / 2) / sum(wc)
+    # labels = FALSE returns the integer bin index 1..4; shift to 2..5.
+    # as.integer() on a labelled factor would return the level CODES (1..4),
+    # not the label values, silently merging consumers into the non-consumer
+    # category.
+    q[!z] <- 1L + as.integer(cut(p[idx], c(-Inf, .25, .5, .75, Inf), labels = FALSE))
+  }
+  if (anyNA(q)) stop("score_zero_lowest produced NA scores.")
+  if (any(z) && !all(1:5 %in% q))
+    log_msg("group has non-consumers but yields score levels {",
+            paste(sort(unique(q)), collapse = ","), "}", level = "WARN")
+  q
+}
+
+score_pdi <- function(intake, samp, method = c("zero_lowest", "quintile")) {
+  method <- match.arg(method)
+  f <- if (method == "zero_lowest") score_zero_lowest else wtd_quintile
   d <- merge(samp[, c("SEQN", "WTDRD1PP")], intake, by = "SEQN")
-  qs <- sapply(names(GROUPS), function(g) wtd_quintile(d[[g]], d$WTDRD1PP))
+  qs <- sapply(names(GROUPS), function(g) f(d[[g]], d$WTDRD1PP))
   qs <- as.data.frame(qs)
   rev <- 6 - qs
   cls <- vapply(GROUPS, `[[`, character(1), "class")
@@ -218,21 +259,81 @@ int_over <- build_day(1, "overlapping")
 log_msg("building day-2 intakes (exclusive, for calibration)...", logfile = logfile)
 int_excl_d2 <- build_day(2, "exclusive")
 
-pdi_excl <- score_pdi(int_excl, samp)
-pdi_over <- score_pdi(int_over, samp)
+pdi_excl <- score_pdi(int_excl, samp, "zero_lowest")   # PRIMARY
+pdi_over <- score_pdi(int_over, samp, "zero_lowest")
+pdi_excl_q <- score_pdi(int_excl, samp, "quintile")    # pre-specified sensitivity
+pdi_excl_d2 <- score_pdi(int_excl_d2,
+                         data.frame(SEQN = int_excl_d2$SEQN,
+                                    WTDRD1PP = samp$WTDRD1PP[match(int_excl_d2$SEQN, samp$SEQN)])[
+                           !is.na(match(int_excl_d2$SEQN, samp$SEQN)), ],
+                         "zero_lowest")
+
+# --- agreement between the two scoring rules -------------------------------
+# Pearson, Spearman, Bland-Altman, and quintile cross-classification.
+ag <- merge(pdi_excl, pdi_excl_q, by = "SEQN", suffixes = c("_B", "_A"))
+
+qcut <- function(v) as.integer(cut(v, quantile(v, 0:5/5, na.rm = TRUE),
+                                   include.lowest = TRUE, labels = 1:5))
+
+kappa_quad <- function(a, b, k = 5) {
+  o <- table(factor(a, 1:k), factor(b, 1:k)) / length(a)
+  e <- outer(rowSums(o), colSums(o))
+  w <- outer(1:k, 1:k, function(i, j) (i - j)^2 / (k - 1)^2)
+  1 - sum(w * o) / sum(w * e)
+}
+
+agreement <- do.call(rbind, lapply(c("PDI", "hPDI", "uPDI"), function(s) {
+  b <- ag[[paste0(s, "_B")]]; a <- ag[[paste0(s, "_A")]]
+  d <- b - a
+  qb <- qcut(b); qa <- qcut(a)
+  data.frame(
+    score = s,
+    pearson  = round(cor(a, b, method = "pearson"), 4),
+    spearman = round(cor(a, b, method = "spearman"), 4),
+    ba_bias  = round(mean(d), 3),
+    ba_sd    = round(sd(d), 3),
+    ba_loa_lower = round(mean(d) - 1.96 * sd(d), 2),
+    ba_loa_upper = round(mean(d) + 1.96 * sd(d), 2),
+    pct_same_quintile      = round(100 * mean(qb == qa), 1),
+    pct_moved_1_quintile   = round(100 * mean(abs(qb - qa) == 1), 1),
+    pct_moved_2plus        = round(100 * mean(abs(qb - qa) >= 2), 1),
+    weighted_kappa         = round(kappa_quad(qb, qa), 4))
+}))
+write.csv(agreement, file.path(tab_dir, "05_scoring_rule_agreement.csv"),
+          row.names = FALSE)
+
+# Bland-Altman plot for the primary score
+png(file.path(here::here("outputs", "figures"), "05_bland_altman_hPDI.png"),
+    width = 1600, height = 1200, res = 200)
+b <- ag$hPDI_B; a <- ag$hPDI_A; d <- b - a; m <- (a + b) / 2
+plot(jitter(m), jitter(d), pch = 16, col = "#00000022",
+     xlab = "Mean of the two hPDI implementations",
+     ylab = "Difference (non-consumer rule - plain quintile)",
+     main = "Bland-Altman: hPDI scoring rules")
+abline(h = mean(d), lwd = 2)
+abline(h = mean(d) + c(-1.96, 1.96) * sd(d), lty = 2, lwd = 2)
+legend("topright", bty = "n", legend = c(
+  sprintf("bias = %.2f", mean(d)),
+  sprintf("95%% LoA = %.2f to %.2f",
+          mean(d) - 1.96 * sd(d), mean(d) + 1.96 * sd(d))))
+dev.off()
 
 # --- diagnostics: did any group collapse? ---------------------------------
 d <- merge(samp[, c("SEQN", "WTDRD1PP")], int_excl, by = "SEQN")
 diag <- do.call(rbind, lapply(names(GROUPS), function(g) {
-  q <- wtd_quintile(d[[g]], d$WTDRD1PP)
+  qA <- wtd_quintile(d[[g]], d$WTDRD1PP)          # sensitivity rule
+  qB <- score_zero_lowest(d[[g]], d$WTDRD1PP)     # primary rule
   data.frame(pdi_group = g, class = GROUPS[[g]]$class, unit = GROUPS[[g]]$unit,
              pct_zero = round(100 * mean(d[[g]] == 0), 1),
-             n_score_levels = length(unique(q[!is.na(q)])),
+             levels_primary = length(unique(qB)),
+             levels_sensitivity = length(unique(qA)),
+             score_of_nonconsumers_primary = if (any(d[[g]] == 0)) 1L else NA_integer_,
+             score_of_nonconsumers_sens = if (any(d[[g]] == 0)) qA[which(d[[g]] == 0)[1]] else NA_integer_,
              mean_intake = round(mean(d[[g]]), 3))
 }))
 write.csv(diag, file.path(tab_dir, "05_group_diagnostics.csv"), row.names = FALSE)
 
-collapsed <- diag[diag$n_score_levels < 5, ]
+collapsed <- diag[diag$levels_sensitivity < 5, ]
 if (nrow(collapsed)) {
   log_msg("NOTE: ", nrow(collapsed), " group(s) yielded <5 distinct score ",
           "levels because of zero-inflation: ",
@@ -255,7 +356,10 @@ write.csv(comparison, file.path(tab_dir, "05_exclusive_vs_overlapping.csv"),
           row.names = FALSE)
 
 saveRDS(list(intake_day1 = int_excl, intake_day2 = int_excl_d2,
-             pdi_day1 = pdi_excl, groups = GROUPS,
+             pdi_day1 = pdi_excl,            # PRIMARY (non-consumer rule)
+             pdi_day1_sensitivity = pdi_excl_q,
+             pdi_day2 = pdi_excl_d2,
+             groups = GROUPS, scoring_rule = "zero_lowest",
              quintile_sample = samp$SEQN),
         file.path(int_dir, "exposure_pdi.rds"))
 
