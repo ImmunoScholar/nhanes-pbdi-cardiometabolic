@@ -18,47 +18,97 @@ SHELL := /bin/bash
 R := Rscript --no-restore --no-save
 
 RAW      := data/raw
-INTERIM  := data/interim
+INT      := data/interim
+PROC     := data/processed
 LOGS     := outputs/logs
-TABLES   := outputs/tables
+TAB      := outputs/tables
+FIG      := outputs/figures
 
-MANIFEST := $(RAW)/MANIFEST.csv
-IMPORTED := $(INTERIM)/nhanes_raw_list.rds
-QCREPORT := $(LOGS)/03_qc_report.md
-DAG      := $(INTERIM)/dag.rds
+.PHONY: all deps clean clean-outputs verify help
 
-.PHONY: all dag download import qc clean clean-outputs deps help
-
-## all: full pipeline through the quality-control gate
-all: qc dag
-
-## dag: encode the causal structure and validate the adjustment set
-dag: $(DAG)
-$(DAG): analysis/00_dag.R R/utils.R
-> $(R) analysis/00_dag.R
+## all: full pipeline, raw download through provenance freeze
+all: docs/PROVENANCE.md
 
 ## deps: restore the pinned package library from renv.lock
 deps:
 > $(R) -e 'renv::restore(prompt = FALSE)'
 
-## download: fetch public NHANES/USDA data and verify checksums
-download: $(MANIFEST)
-$(MANIFEST): analysis/01_download.R R/utils.R
+# --- acquisition and validation -------------------------------------------
+$(RAW)/MANIFEST.csv: analysis/01_download.R R/utils.R
 > $(R) analysis/01_download.R
 
-## import: read .XPT and validate against the frozen variable specification
-import: $(IMPORTED)
-$(IMPORTED): analysis/02_import.R docs/variable_specification.csv $(MANIFEST)
+$(INT)/nhanes_raw_list.rds: analysis/02_import.R docs/variable_specification.csv $(RAW)/MANIFEST.csv
 > $(R) analysis/02_import.R
 
-## qc: mandatory quality-control gate; halts on any blocking failure
-qc: $(QCREPORT)
-$(QCREPORT): analysis/03_quality_control.R $(IMPORTED)
+$(LOGS)/03_qc_report.md: analysis/03_quality_control.R $(INT)/nhanes_raw_list.rds
 > $(R) analysis/03_quality_control.R
+
+$(INT)/dag.rds: analysis/00_dag.R R/utils.R
+> $(R) analysis/00_dag.R
+
+# --- exposure, outcome, covariates ----------------------------------------
+$(TAB)/04_wweia_category_conflicts.csv: analysis/04_wweia_conflicts.R docs/pdi_food_group_mapping.csv docs/wweia_adjudications.csv $(LOGS)/03_qc_report.md
+> $(R) analysis/04_wweia_conflicts.R
+
+$(INT)/exposure_pdi.rds: analysis/05_exposure_pdi.R $(TAB)/04_wweia_category_conflicts.csv
+> $(R) analysis/05_exposure_pdi.R
+
+$(INT)/outcome_composite.rds: analysis/06_outcome_composite.R $(LOGS)/03_qc_report.md
+> $(R) analysis/06_outcome_composite.R
+
+$(INT)/analytic_dataset.rds: analysis/07_covariates.R $(INT)/exposure_pdi.rds $(INT)/outcome_composite.rds
+> $(R) analysis/07_covariates.R
+
+$(INT)/imputed_data.rds: analysis/08_missing_data.R $(INT)/analytic_dataset.rds
+> $(R) analysis/08_missing_data.R
+
+# --- estimation ------------------------------------------------------------
+$(TAB)/09_primary_models.csv: analysis/09_models_primary.R $(INT)/imputed_data.rds $(INT)/dag.rds
+> $(R) analysis/09_models_primary.R
+
+$(INT)/calibration.rds: analysis/10_calibration.R $(INT)/imputed_data.rds
+> $(R) analysis/10_calibration.R
+
+$(TAB)/11_vif_groups.csv: analysis/11_collinearity_check.R $(INT)/imputed_data.rds $(INT)/exposure_pdi.rds
+> $(R) analysis/11_collinearity_check.R
+
+$(INT)/substitution.rds: analysis/12_models_substitution.R $(TAB)/11_vif_groups.csv
+> $(R) analysis/12_models_substitution.R
+
+$(INT)/pca.rds: analysis/13_pca.R $(INT)/outcome_composite.rds
+> $(R) analysis/13_pca.R
+
+$(TAB)/14_pca_associations.csv: analysis/14_pca_associations.R $(INT)/pca.rds docs/pca_component_names.md
+> $(R) analysis/14_pca_associations.R
+
+$(INT)/sensitivity.rds: analysis/15_sensitivity.R $(TAB)/09_primary_models.csv $(INT)/calibration.rds
+> $(R) analysis/15_sensitivity.R
+
+$(TAB)/16_mediation_exploratory.csv: analysis/16_mediation_exploratory.R $(INT)/sensitivity.rds
+> $(R) analysis/16_mediation_exploratory.R
+
+# --- manuscript outputs and preservation ----------------------------------
+$(TAB)/T1_characteristics.csv: analysis/17_tables.R $(INT)/sensitivity.rds $(INT)/substitution.rds $(TAB)/14_pca_associations.csv $(TAB)/16_mediation_exploratory.csv
+> $(R) analysis/17_tables.R
+
+$(FIG)/F1_sensitivity_forest.png: analysis/18_figures.R $(TAB)/T1_characteristics.csv
+> $(R) analysis/18_figures.R
+
+docs/PROVENANCE.md: analysis/19_freeze_provenance.R $(FIG)/F1_sensitivity_forest.png
+> $(R) analysis/19_freeze_provenance.R
+
+## verify: rebuild everything and confirm artefact checksums are unchanged
+verify:
+> cp docs/artefact_checksums.csv /tmp/baseline_checksums.csv
+> $(MAKE) clean-outputs
+> $(MAKE) all
+> @diff -q /tmp/baseline_checksums.csv docs/artefact_checksums.csv \
+>   && echo "REPRODUCIBILITY: PASS -- all artefact checksums identical" \
+>   || echo "REPRODUCIBILITY: DIFFERENCES FOUND -- inspect the diff"
 
 ## clean-outputs: remove generated outputs but keep downloaded raw data
 clean-outputs:
-> rm -rf $(INTERIM)/* data/processed/* outputs/figures/* outputs/tables/* $(LOGS)/*
+> rm -rf $(INT)/* $(PROC)/* $(FIG)/* $(TAB)/* $(LOGS)/*
 
 ## clean: remove everything reproducible, including raw downloads
 clean: clean-outputs
