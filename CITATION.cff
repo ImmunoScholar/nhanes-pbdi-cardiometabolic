@@ -11,10 +11,10 @@ abstract: >-
   associations and no causal claims are made.
 type: software
 authors:
-  # Family name and ORCID intentionally omitted rather than shipped as
-  # placeholders; both can be added in a normal commit without rewriting
-  # history. A CFF person entry with given-names alone is valid.
-  - given-names: Priya
+  # No ORCID: the field is omitted rather than left as a placeholder, and can
+  # be added later in a normal commit.
+  - given-names: "Priya Dharshani"
+    family-names: "V"
     email: dharshanip888@gmail.com
 license: MIT
 repository-code: "https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic"
