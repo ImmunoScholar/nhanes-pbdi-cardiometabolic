@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-24 18:03:06 UTC
+Generated: 2026-07-24 18:11:34 UTC
 
 ## Study
 
@@ -10,7 +10,7 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `9679b30c180c07d7080d5925e2b236e4d1802e15`
+- Commit: `584095a14c9cb4933850df31e3a2faa94a96c6ea`
 - Branch: `main`
 - Working tree at freeze: clean
 
