@@ -44,7 +44,7 @@ ins  <- pull("P_INS",  c("LBXIN"))
 ghb  <- pull("P_GHB",  c("LBXGH"))
 crp  <- pull("P_HSCRP",c("LBXHSCRP"))
 bio  <- pull("P_BIOPRO",c("LBXSATSI"))
-bpq  <- pull("P_BPQ",  c("BPQ050A"))
+bpq  <- pull("P_BPQ",  c("BPQ020", "BPQ040A", "BPQ050A"))
 
 d <- demo
 for (x in list(bmx, bpxo, tri, hdl, glu, ins, ghb, crp, bio, bpq)) {
@@ -67,7 +67,17 @@ d$sbp[is.nan(d$sbp)] <- NA; d$dbp[is.nan(d$dbp)] <- NA
 d$dbp[!is.na(d$dbp) & d$dbp == 0] <- NA        # 0 mmHg diastolic is not a reading
 
 # Variant (b): additive constants for treated blood pressure.
-d$bp_treated <- !is.na(d$BPQ050A) & d$BPQ050A == 1
+# BPQ050A is asked only of those reaching it via BPQ020 == 1 -> BPQ040A == 1,
+# so a blank overwhelmingly means "never told they had high blood pressure,
+# therefore not treated" rather than unknown. The skip path is followed
+# explicitly; treated status is left NA only when the path itself breaks.
+d$bp_treated <- ifelse(!is.na(d$BPQ050A) & d$BPQ050A == 1, TRUE,
+                ifelse(!is.na(d$BPQ050A) & d$BPQ050A == 2, FALSE,
+                ifelse(!is.na(d$BPQ040A) & d$BPQ040A == 2, FALSE,
+                ifelse(!is.na(d$BPQ020)  & d$BPQ020  == 2, FALSE, NA))))
+# For the additive-constant variant an unknown treatment status is treated as
+# untreated, which is conservative: it withholds the upward adjustment.
+d$bp_treated[is.na(d$bp_treated)] <- FALSE
 d$sbp_adj <- d$sbp + ifelse(d$bp_treated, 15, 0)
 d$dbp_adj <- d$dbp + ifelse(d$bp_treated, 10, 0)
 

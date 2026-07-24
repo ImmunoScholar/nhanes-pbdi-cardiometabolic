@@ -101,8 +101,32 @@ cvd <- sapply(c("MCQ160B","MCQ160C","MCQ160D","MCQ160E","MCQ160F"),
 cov$cvd_dx        <- ifelse(rowSums(cvd, na.rm = TRUE) > 0, TRUE,
                             ifelse(rowSums(is.na(cvd)) == ncol(cvd), NA, FALSE))
 cov$tried_lose_wt <- g(whq, "WHQ070") == 1
-cov$bp_med        <- g(bpq, "BPQ050A") == 1
-cov$lipid_med     <- g(bpq, "BPQ100D") == 1
+
+# Medication use must respect the NHANES SKIP PATTERNS. These questions are
+# only asked of people who reached them, so a blank is usually "not applicable,
+# therefore not treated" -- NOT missing data. Treating the blanks as missing
+# makes bp_med 64% and lipid_med 69% "missing" and invites an imputation model
+# to invent medication use for people who were never told they had the
+# condition.
+#
+#   BPQ020 (ever told high BP) == 1 -> BPQ040A (taking Rx) == 1 -> BPQ050A
+#   BPQ080 (told high cholesterol) == 1, OR
+#     BPQ080 != 1 -> BPQ060 (ever had cholesterol checked) == 1
+#     -> BPQ090D (told to take Rx) == 1 -> BPQ100D
+# Verified directly against the data: BPQ050A is non-missing for exactly the
+# 3,279 with BPQ040A == 1, and BPQ100D for exactly the 2,748 with BPQ090D == 1.
+bpq020 <- g(bpq, "BPQ020"); bpq040 <- g(bpq, "BPQ040A"); bpq050 <- g(bpq, "BPQ050A")
+cov$bp_med <- ifelse(!is.na(bpq050) & bpq050 == 1, TRUE,
+              ifelse(!is.na(bpq050) & bpq050 == 2, FALSE,
+              ifelse(!is.na(bpq040) & bpq040 == 2, FALSE,
+              ifelse(!is.na(bpq020) & bpq020 == 2, FALSE, NA))))
+
+bpq080 <- g(bpq, "BPQ080"); bpq060 <- g(bpq, "BPQ060")
+bpq090 <- g(bpq, "BPQ090D"); bpq100 <- g(bpq, "BPQ100D")
+cov$lipid_med <- ifelse(!is.na(bpq100) & bpq100 == 1, TRUE,
+                 ifelse(!is.na(bpq100) & bpq100 == 2, FALSE,
+                 ifelse(!is.na(bpq090) & bpq090 == 2, FALSE,
+                 ifelse(!is.na(bpq060) & bpq060 == 2, FALSE, NA))))
 
 PRIMARY_COVARIATES <- c("age_years","sex","race_eth","education3","pir",
                         "smoking3","alcohol_dpd","met_min_wk","supplement_any",

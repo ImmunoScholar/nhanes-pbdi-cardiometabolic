@@ -167,3 +167,51 @@ by diagnostics, not by the code failing):
 **Estimand affected:** yes — this changes the primary exposure values. Approved
 by the PI on 2026-07-24 with the plain-quintile implementation retained as a
 pre-specified sensitivity analysis.
+
+---
+
+## Amendment 5 — 2026-07-24 — CORRECTION (NHANES skip patterns)
+
+**Trigger:** the first imputation run reported `lipid_med` 69.1% and `bp_med`
+63.9% missing. A medication variable cannot plausibly be two-thirds missing in
+an examined adult sample, so the imputation was halted and inspected before
+its output was used.
+
+**Finding:** these are NHANES SKIP PATTERNS, not missing data. Verified
+directly against the data:
+
+- `BPQ050A` is non-missing for exactly the 3,279 respondents with
+  `BPQ040A == 1`, which is itself reached only via `BPQ020 == 1`
+  (ever told high blood pressure).
+- `BPQ100D` is non-missing for exactly the 2,748 with `BPQ090D == 1`, reached
+  via `BPQ080 == 1` (told high cholesterol) OR, for those not told,
+  `BPQ060 == 1` (ever had cholesterol checked).
+
+A respondent never told they had high blood pressure is not *missing*
+antihypertensive medication status; they are not taking antihypertensive
+medication. Coding the blank as `NA` and passing it to `mice` invites the
+imputation model to invent medication use for people who were never told they
+had the condition -- and, because these variables are predictors in the
+imputation model, that error propagates into every other imputed variable.
+
+**Change:** `bp_med` and `lipid_med` are now derived by following the skip path
+explicitly (`07_covariates.R`), and `bp_treated` likewise in
+`06_outcome_composite.R`. For the additive-constant blood-pressure variant an
+unknown treatment status is treated as untreated, which is conservative
+because it withholds the upward adjustment.
+
+**Effect:** `bp_med` 63.86% -> 0.17% missing; `lipid_med` 69.12% -> 3.82%.
+Complete-case n is unchanged at 2,500, because neither variable is a primary
+covariate -- but both are predictors in the imputation model, so the first
+imputation run was discarded and re-run from corrected inputs.
+
+**Generalisation for the rest of the project:** any NHANES questionnaire item
+showing implausibly high missingness must be checked against its skip pattern
+before being treated as missing at random. `tried_lose_wt` (13.85%) was checked
+and is NOT a skip artefact -- its missingness is near-constant across age bands
+(379 / 432 / 389 / 57), so it is genuine item non-response and is imputed.
+
+**Estimand affected:** none directly (medication variables enter only the
+pre-specified sensitivity variants), but the imputation model -- and therefore
+every imputed covariate used in the primary analysis -- was contaminated. The
+correction is material.
