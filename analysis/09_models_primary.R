@@ -34,6 +34,18 @@ ad  <- readRDS(file.path(int_dir, "analytic_dataset.rds"))
 COV <- imp$primary_covariates
 completed <- imp$completed
 
+# Secondary outcomes and BMI were not part of the imputation frame (they are
+# not covariates of the primary model). They are merged back by SEQN and are
+# therefore analysed complete-case ON THE OUTCOME, with imputed covariates.
+# Their n is reported alongside each estimate rather than assumed equal to the
+# primary n.
+extra <- readRDS(file.path(int_dir, "outcome_composite.rds"))[
+  , c("SEQN", "log_homa_ir", "hba1c_pct", "log_hscrp", "log_alt", "BMXBMI")]
+completed <- lapply(completed, function(d) {
+  n0 <- nrow(d); d <- merge(d, extra, by = "SEQN", all.x = TRUE)
+  stopifnot(nrow(d) == n0); d
+})
+
 # --- exposure scaling ------------------------------------------------------
 # The exposure is complete (day-1 PDI was required for entry), so a single
 # scaling constant applies to every imputed dataset and the estimates stay
