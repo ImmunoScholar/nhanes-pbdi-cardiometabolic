@@ -143,7 +143,22 @@ write.csv(load_tab, file.path(tab_dir, "13_pca_loadings.csv"), row.names = FALSE
 write.csv(skew_tab, file.path(tab_dir, "13_pca_skewness.csv"), row.names = FALSE)
 
 # --- weighted scree plot ---------------------------------------------------
-png(file.path(fig_dir, "13_scree.png"), width = 1500, height = 1000, res = 160)
+# ragg rather than grDevices::png: the base png() device resolves to the system
+# cairo stack, whose font rasterisation and PNG encoding are OS properties that
+# renv.lock does not pin, so its bytes are not reproducible across machines
+# (Amendment 8). Dimensions are the former pixel values expressed in inches at
+# the same resolution: 1500 x 1000 px / 160 dpi.
+#
+# The font family must also be named explicitly. Left unset, ragg resolves the
+# generic sans through fontconfig, which on this machine gives DejaVu Sans from
+# fonts-dejavu-core -- a package renv.lock does not pin and the project does not
+# declare. Liberation Sans is already a declared system dependency (Amendment 6)
+# and is what every manuscript figure uses. Verified necessary, not decorative:
+# under a fontconfig file that reorders the generic sans families, unpinned
+# output changes bytes and pinned output does not (Amendment 9).
+ragg::agg_png(file.path(fig_dir, "13_scree.png"), width = 9.375, height = 6.25,
+              units = "in", res = 160, background = "white")
+par(family = "Liberation Sans")
 plot(seq_len(p), eigvals, type = "b", pch = 16, ylim = c(0, max(eigvals) * 1.05),
      xlab = "Component", ylab = "Eigenvalue (survey-weighted correlation matrix)",
      main = "Scree plot with parallel-analysis thresholds")

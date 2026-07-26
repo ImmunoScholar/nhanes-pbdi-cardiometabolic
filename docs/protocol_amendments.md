@@ -336,3 +336,102 @@ here as a known follow-up rather than performed silently.
 **Estimand affected: none.** Every table and every reported estimate is
 byte-identical to the original run, computed from independently re-downloaded
 source data whose 28 input checksums all verified against `docs/checksums.lock`.
+
+---
+
+## Amendment 9 — 2026-07-26 — PRESENTATION ONLY (device migration)
+
+**Trigger:** Amendment 8 recorded, as a known follow-up rather than a silent
+change, that the four diagnostic figures still drawn with base `png()` were the
+only artefacts of 66 that failed to reproduce byte-for-byte on a second machine.
+This amendment carries out that migration.
+
+**Change.** The four call sites now use `ragg::agg_png` instead of
+`grDevices::png`:
+
+| Script | Figure | Former pixels / res | Inches at same res |
+|---|---|---|---|
+| `05_exposure_pdi.R` | `05_bland_altman_hPDI.png` | 1600 x 1200 @ 200 | 8.000 x 6.000 |
+| `08_missing_data.R` | `08_mice_convergence.png` | 2000 x 1400 @ 160 | 12.500 x 8.750 |
+| `08_missing_data.R` | `08_observed_vs_imputed.png` | 1800 x 1200 @ 160 | 11.250 x 7.500 |
+| `13_pca.R` | `13_scree.png` | 1500 x 1000 @ 160 | 9.375 x 6.250 |
+
+The plotting code is untouched; these remain the same base-graphics and lattice
+diagnostics. `png()` takes width and height in **pixels** alongside `res`, while
+`agg_png()` here takes **inches**, so the dimensions were converted at the
+unchanged resolution. The output pixel dimensions are therefore identical, which
+was confirmed by reading them back out of the regenerated files rather than
+assumed from the arithmetic.
+
+**The device swap alone was not sufficient, and stopping there would have left
+the defect in place under a different name.** With no font family named, `ragg`
+resolves the generic sans through **fontconfig**, which on this machine returns
+DejaVu Sans from `fonts-dejavu-core` -- a package `renv.lock` does not pin and
+the project does not declare anywhere. That is the same class of unpinned
+operating-system dependency Amendment 8 identified in cairo, merely relocated
+from the rasteriser to font selection. The six manuscript figures were never
+exposed to it because `R/theme_manuscript.R` names `Liberation Sans` explicitly.
+
+The family is now pinned to Liberation Sans, which is already a declared system
+dependency (`fonts-liberation`, added in Amendment 6) and is the typeface of
+every manuscript figure. `agg_png()` accepts no `family` argument, so the pin is
+applied per device: `par(family = ...)` for the two base-graphics figures, and
+`lattice::trellis.par.set(grid.pars = list(fontfamily = ...))` for the two
+lattice figures, trellis settings being per-device.
+
+**Tested, not assumed.** Under a `FONTCONFIG_FILE` that reorders the generic sans
+families so the default sans resolves to Ubuntu rather than DejaVu Sans:
+
+| Variant | Stock font environment vs reordered |
+|---|---|
+| Unpinned, base graphics | bytes **differ** |
+| Unpinned, lattice | bytes **differ** |
+| Pinned, base graphics | bytes **identical** |
+| Pinned, lattice | bytes **identical** |
+
+The two unpinned rows are the negative control and they carry the argument:
+without them, "identical" would only have shown that the perturbation did
+nothing. They also show that migrating the device without pinning the font would
+have produced a figure that still moved with the host's font configuration.
+
+**Verification of the pipeline.** Two independent clean rebuilds
+(`make clean-outputs` then `make all`) were run end to end and compared three
+ways:
+
+- run 1 versus run 2: **all 66 artefact checksums identical**, including all ten
+  PNGs;
+- run 2 versus `git show HEAD:docs/artefact_checksums.csv`: **62 of 66
+  identical**, the four exceptions being exactly the four migrated figures.
+  Comparing against the *committed* checksums rather than the working-tree file
+  matters for the reason Amendment 8 gave -- `19_freeze_provenance.R` rewrites
+  `docs/artefact_checksums.csv` during the run, so a run-versus-working-tree
+  comparison compares the outputs with themselves and passes vacuously;
+- the frozen analytic dataset is unchanged at SHA-256 `303bcbe0da07eb89...`, as
+  are all 55 tables and all six manuscript figures.
+
+**Consequence for appearance, stated plainly.** The four diagnostics now render
+in Liberation Sans rather than DejaVu Sans, so glyph shapes and text metrics
+change slightly and their committed PNGs are replaced. All four were inspected
+against the previous versions: no data geometry, axis range, plotted point,
+annotation value or legend entry moves. The Bland-Altman bias and limits of
+agreement still read 1.34 and -2.24 to 4.92, matching Amendment 4, and the scree
+eigenvalues are unchanged.
+
+**Residual limitation, not eliminated.** All ten figures now render through
+`ragg`, `systemfonts` and `textshaping`, which `renv.lock` pins, with the font
+file supplied by a declared system package. Glyph rasterisation still ultimately
+runs through the system **FreeType**, and PNG encoding through the system
+zlib/libpng, neither of which `renv.lock` pins. This assumption is not new and is
+not specific to these four figures -- it applies equally to the six manuscript
+figures, which did reproduce byte-identically across two machines in Amendment 8.
+What has changed is that the four diagnostics are no longer a special case that
+fails where the other six succeed. A second-machine rebuild since this change has
+not yet been performed; that remains the confirming test, and the checklist says
+so rather than claiming it.
+
+**Estimand affected: none.** These are diagnostic figures. `05` and `13` write
+their estimates to CSV independently of the plot; `08`'s figures are convergence
+and distributional checks on the imputation. A graphics device cannot alter an
+estimate, and the evidence for that here is direct rather than argued: every
+table and the frozen analytic dataset are byte-identical to the committed values
+across both rebuilds.

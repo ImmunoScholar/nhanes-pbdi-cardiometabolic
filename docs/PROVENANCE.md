@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-26 11:23:34 UTC
+Generated: 2026-07-26 12:35:42 UTC
 
 ## Study
 
@@ -10,10 +10,10 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `5fef371f6c138dabe2a06d6e00e25c12f99a52aa`
+- Commit: `d9da8d4a7aa959a1abe1b0aaaa90f0824796f509`
 - Branch: `main`
 - Working tree at freeze: **MODIFIED** (see below)
-  - ` M data/raw/MANIFEST.csv  M docs/artefact_checksums.csv`
+  - ` M analysis/05_exposure_pdi.R  M analysis/08_missing_data.R  M analysis/13_pca.R  M docs/PROVENANCE.md  M docs/artefact_checksums.csv  M docs/protocol_amendments.md  M docs/reproducibility_checklist.md  M outputs/figures/05_bland_altman_hPDI.png  M outputs/figures/08_mice_convergence.png  M outputs/figures/08_observed_vs_imputed.png  M outputs/figures/13_scree.png`
 
 ## Analytic dataset
 

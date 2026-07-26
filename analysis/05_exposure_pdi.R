@@ -309,8 +309,12 @@ write.csv(agreement, file.path(tab_dir, "05_scoring_rule_agreement.csv"),
           row.names = FALSE)
 
 # Bland-Altman plot for the primary score
-png(file.path(here::here("outputs", "figures"), "05_bland_altman_hPDI.png"),
-    width = 1600, height = 1200, res = 200)
+# ragg rather than grDevices::png, with the font family pinned -- see the note
+# in 13_pca.R and Amendment 9. 1600 x 1200 px / 200 dpi.
+ragg::agg_png(file.path(here::here("outputs", "figures"), "05_bland_altman_hPDI.png"),
+              width = 8, height = 6, units = "in", res = 200,
+              background = "white")
+par(family = "Liberation Sans")
 b <- ag$hPDI_B; a <- ag$hPDI_A; d <- b - a; m <- (a + b) / 2
 plot(jitter(m), jitter(d), pch = 16, col = "#00000022",
      xlab = "Mean of the two hPDI implementations",

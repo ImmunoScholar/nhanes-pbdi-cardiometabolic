@@ -99,7 +99,14 @@ log_msg("each completed dataset: n = ", nrow(completed[[1]]), logfile = logfile)
 
 # --- diagnostics -----------------------------------------------------------
 # 1. Convergence: chains should mix, with no trend across iterations.
-png(file.path(fig_dir, "08_mice_convergence.png"), width = 2000, height = 1400, res = 160)
+# ragg rather than grDevices::png, with the font family pinned -- see the note
+# in 13_pca.R and Amendment 9. 2000 x 1400 px / 160 dpi. These two diagnostics
+# are lattice, not base, so the family is pinned through the trellis grid
+# parameters rather than par(); trellis settings are per-device, so this has to
+# follow each device call.
+ragg::agg_png(file.path(fig_dir, "08_mice_convergence.png"), width = 12.5,
+              height = 8.75, units = "in", res = 160, background = "white")
+lattice::trellis.par.set(grid.pars = list(fontfamily = "Liberation Sans"))
 print(plot(imp, layout = c(2, 4)))
 dev.off()
 
@@ -108,7 +115,10 @@ dev.off()
 #    MAR implies imputed values may differ -- but a gross shift warrants review.
 cont_missing <- intersect(c("pir", "alcohol_dpd", "met_min_wk", "energy_kcal"),
                           pre$variable[pre$pct_missing > 0])
-png(file.path(fig_dir, "08_observed_vs_imputed.png"), width = 1800, height = 1200, res = 160)
+# 1800 x 1200 px / 160 dpi.
+ragg::agg_png(file.path(fig_dir, "08_observed_vs_imputed.png"), width = 11.25,
+              height = 7.5, units = "in", res = 160, background = "white")
+lattice::trellis.par.set(grid.pars = list(fontfamily = "Liberation Sans"))
 print(densityplot(imp, ~ pir + alcohol_dpd + met_min_wk))
 dev.off()
 

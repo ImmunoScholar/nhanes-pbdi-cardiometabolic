@@ -21,7 +21,7 @@ Each item states what was done and where the evidence lives. Items that were
 | Item | Status | Evidence |
 |---|---|---|
 | Analysis plan fixed before estimation | Yes | Phases 1–2; frozen 2026-07-24 |
-| Every deviation logged with rationale and estimand impact | Yes | `docs/protocol_amendments.md` (5 amendments) |
+| Every deviation logged with rationale and estimand impact | Yes | `docs/protocol_amendments.md` (9 amendments) |
 | Exactly one primary test pre-specified | Yes | hPDI per SD → composite score |
 | Adjustment set derived from a causal diagram, not convention | Yes | `analysis/00_dag.R`; machine-checked, halts on disagreement |
 | Mediator status of adiposity proven, not asserted | Yes | absent from every minimal sufficient adjustment set |
@@ -43,7 +43,9 @@ Each item states what was done and where the evidence lives. Items that were
 | Dependency graph explicit | Yes | `Makefile`, targets 00–19 |
 | Clean end-to-end rerun performed | Yes | `make verify` |
 | Artefact checksums recorded and compared across runs | Yes | `docs/artefact_checksums.csv` |
-| Rebuild reproduced on a **different machine** from a clean clone | Partial | 2026-07-26: 62/66 artefacts byte-identical, including all 55 tables and the frozen dataset. Four diagnostic figures differ; see below and Amendment 8 |
+| Rebuild reproduced on a **different machine** from a clean clone | Partial | 2026-07-26: 62/66 artefacts byte-identical, including all 55 tables and the frozen dataset. The four diagnostic figures that differed have since had their cause removed (Amendment 9), but that second-machine rebuild predates the fix and has not been repeated, so this stays Partial |
+| Every figure rendered by a device pinned in `renv.lock` | Yes | all ten PNGs via `ragg::agg_png`; the last four moved off base `png()` in Amendment 9 |
+| Byte-identical **figure** reproduction across environments | Partial | Was **No**. Amendment 9 moved the four remaining base-`png()` diagnostics to `ragg` and pinned the font family, so no figure now depends on the system cairo stack or on fontconfig's default-sans ordering. Demonstrated: unpinned output changes bytes under a reordered `FONTCONFIG_FILE` and pinned output does not (negative control included); two independent clean rebuilds agree on all 66 checksums. Not yet demonstrated: a second-machine rebuild since the change |
 | Analytic dataset frozen and hashed | Yes | `data/processed/analytic_frozen.rds` |
 | Session information archived | Yes | `docs/PROVENANCE.md` |
 | Git commit identifier recorded with results | Yes | `docs/PROVENANCE.md` |
@@ -72,7 +74,7 @@ Each item states what was done and where the evidence lives. Items that were
 | Cycle-contemporaneous FNDDS assignment | **No** | The pre-pandemic public file omits the survey-cycle identifier for disclosure control, forcing one classification per food code. |
 | MetS severity score across all groups | **No** | Published coefficients do not exist for non-Hispanic Asian or Other/Multiracial participants. |
 | Pre-registration on a public registry | **No** | The protocol was frozen and version-controlled, but not deposited in an external registry. |
-| Byte-identical **figure** reproduction across environments | **No** | The four diagnostic figures drawn with base `png()` render through the system **cairo** stack, which `renv` does not pin. On a second machine their bytes differ, while all 55 tables, the frozen dataset and all six `ragg`-rendered manuscript figures are byte-identical. No estimate is affected. The earlier "66/66" claim held within one machine, not across machines. |
+| Byte-identical **figure** reproduction confirmed on a second machine | **No** | The cause of the earlier failure is fixed and tested (Amendment 9), and figure reproduction is now Partial rather than No in *Computation* above. It is listed here too because the confirming test — a clean-clone rebuild on a second machine *since* the fix — has not been run. Claiming it on same-machine evidence is the specific error Amendment 8 corrected. |
 
 ## How to reproduce
 
