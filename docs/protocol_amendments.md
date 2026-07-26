@@ -281,3 +281,58 @@ change the hash. The field was removed; the freeze time is recorded in
 **Estimand affected: none.** All 64 content artefacts — every table and every
 manuscript figure — were already bit-identical across two independent full
 rebuilds. Both defects were in reproducibility machinery, not in analysis.
+
+
+---
+
+## Amendment 8 - 2026-07-26 - CROSS-ENVIRONMENT REPRODUCTION (no estimand affected)
+
+**Trigger:** the repository was rebuilt from a clean clone on a different machine
+in order to commit the generated figures and tables, which had been gitignored
+and so existed only on the machine that produced them. That rebuild doubled as
+an independent reproduction attempt and surfaced two defects.
+
+**Defect 1 - `make all` did not download on a clean clone.** The download target
+was `data/raw/MANIFEST.csv`, but that file is *committed*, because it is the
+provenance record. On a fresh clone it therefore already exists, make judged the
+download step already satisfied, and the build jumped straight to `02_import.R`,
+which halted with `No .xpt files in data/raw/`. The claim in README and in the
+reproducibility checklist that `make all` rebuilds from a clean checkout was
+consequently false for anyone who actually tried it. The gate is now
+`data/raw/P_DEMO.xpt`, which is gitignored and is therefore absent exactly when
+a download is genuinely needed.
+
+**Defect 2 - figure bytes are not reproducible across environments.** Checked
+against the *committed* checksums rather than freshly regenerated ones, which
+matters: `19_freeze_provenance.R` rewrites `docs/artefact_checksums.csv` as part
+of the run, so comparing the run against its own output would have compared the
+outputs with themselves and passed vacuously. Against the committed values, 62 of
+66 artefacts were byte-identical, comprising **all 55 tables, the frozen analytic
+dataset** (SHA-256 `303bcbe0da07eb89...`, unchanged) **and all six manuscript
+figures**. The four that differed are exactly the four diagnostics drawn with
+base `png()`: `05_bland_altman_hPDI`, `08_mice_convergence`,
+`08_observed_vs_imputed` and `13_scree`.
+
+The cause is the graphics device, not the analysis and not the seeding. `png()`
+resolves to the system **cairo** stack here (`capabilities("cairo")` is TRUE and
+`bitmapType` is `"cairo"`), whose font rasterisation and PNG encoding are
+properties of the operating system and are **not** pinned by `renv.lock`. The six
+manuscript figures use `ragg::agg_png` with `systemfonts` and `textshaping`, all
+of which are pinned, and they reproduced exactly. That contrast is what isolates
+the device as the cause: identical data, identical seeds, different rasteriser.
+
+An honest correction to the record: Amendment 7 reported "66/66 artefacts
+identical across two full rebuilds". That was true as written, but both rebuilds
+ran on the same machine, so it evidenced determinism rather than portability. The
+weaker, better-supported claim now stands in the checklist.
+
+**Not changed, deliberately.** The four figures were left on `png()` rather than
+migrated to `ragg`. Migrating them would alter committed artefacts and their
+recorded hashes for presentation reasons alone, and this protocol treats
+figure-system changes as amendments needing their own justification (cf.
+Amendment 6). The limitation is documented instead, and the migration is recorded
+here as a known follow-up rather than performed silently.
+
+**Estimand affected: none.** Every table and every reported estimate is
+byte-identical to the original run, computed from independently re-downloaded
+source data whose 28 input checksums all verified against `docs/checksums.lock`.

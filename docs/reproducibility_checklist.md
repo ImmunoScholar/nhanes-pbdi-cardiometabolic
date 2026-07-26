@@ -39,10 +39,11 @@ Each item states what was done and where the evidence lives. Items that were
 |---|---|---|
 | Package versions pinned | Yes | `renv.lock`, R 4.6.1; `docs/package_versions.csv` |
 | Pipeline activates the pinned library | Yes | fixed after discovering `--vanilla` bypassed `renv` |
-| Full rebuild from a single command | Yes | `make all` |
+| Full rebuild from a single command | Yes | `make all`; the download gate was keyed to a committed file until Amendment 8 fixed it, so a fresh clone previously halted at `02_import.R` |
 | Dependency graph explicit | Yes | `Makefile`, targets 00–19 |
 | Clean end-to-end rerun performed | Yes | `make verify` |
 | Artefact checksums recorded and compared across runs | Yes | `docs/artefact_checksums.csv` |
+| Rebuild reproduced on a **different machine** from a clean clone | Partial | 2026-07-26: 62/66 artefacts byte-identical, including all 55 tables and the frozen dataset. Four diagnostic figures differ; see below and Amendment 8 |
 | Analytic dataset frozen and hashed | Yes | `data/processed/analytic_frozen.rds` |
 | Session information archived | Yes | `docs/PROVENANCE.md` |
 | Git commit identifier recorded with results | Yes | `docs/PROVENANCE.md` |
@@ -71,6 +72,7 @@ Each item states what was done and where the evidence lives. Items that were
 | Cycle-contemporaneous FNDDS assignment | **No** | The pre-pandemic public file omits the survey-cycle identifier for disclosure control, forcing one classification per food code. |
 | MetS severity score across all groups | **No** | Published coefficients do not exist for non-Hispanic Asian or Other/Multiracial participants. |
 | Pre-registration on a public registry | **No** | The protocol was frozen and version-controlled, but not deposited in an external registry. |
+| Byte-identical **figure** reproduction across environments | **No** | The four diagnostic figures drawn with base `png()` render through the system **cairo** stack, which `renv` does not pin. On a second machine their bytes differ, while all 55 tables, the frozen dataset and all six `ragg`-rendered manuscript figures are byte-identical. No estimate is affected. The earlier "66/66" claim held within one machine, not across machines. |
 
 ## How to reproduce
 

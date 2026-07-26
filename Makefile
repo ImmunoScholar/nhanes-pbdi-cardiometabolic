@@ -34,10 +34,15 @@ deps:
 > $(R) -e 'renv::restore(prompt = FALSE)'
 
 # --- acquisition and validation -------------------------------------------
-$(RAW)/MANIFEST.csv: analysis/01_download.R R/utils.R
+# The download gate is a raw .xpt file, NOT data/raw/MANIFEST.csv. MANIFEST.csv
+# is committed (it is the provenance record), so using it as the target made
+# make consider the download satisfied on a fresh clone and jump straight to
+# 02_import.R, which then failed with "No .xpt files in data/raw/". P_DEMO.xpt
+# is gitignored, so it is absent exactly when a download is actually needed.
+$(RAW)/P_DEMO.xpt: analysis/01_download.R R/utils.R
 > $(R) analysis/01_download.R
 
-$(INT)/nhanes_raw_list.rds: analysis/02_import.R docs/variable_specification.csv $(RAW)/MANIFEST.csv
+$(INT)/nhanes_raw_list.rds: analysis/02_import.R docs/variable_specification.csv $(RAW)/P_DEMO.xpt
 > $(R) analysis/02_import.R
 
 $(LOGS)/03_qc_report.md: analysis/03_quality_control.R $(INT)/nhanes_raw_list.rds
