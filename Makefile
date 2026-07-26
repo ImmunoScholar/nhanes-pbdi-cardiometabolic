@@ -96,7 +96,11 @@ $(TAB)/16_mediation_exploratory.csv: analysis/16_mediation_exploratory.R $(INT)/
 $(TAB)/T1_characteristics.csv: analysis/17_tables.R $(INT)/sensitivity.rds $(INT)/substitution.rds $(TAB)/14_pca_associations.csv $(TAB)/16_mediation_exploratory.csv
 > $(R) analysis/17_tables.R
 
-$(FIG)/F1_sensitivity_forest.png: analysis/18_figures.R $(TAB)/T1_characteristics.csv
+# imputed_data.rds is listed because 18_figures.R reads it directly: the
+# analytic SEQNs decide which rows the descriptive statistics on F2 and F6 are
+# computed over (Amendment 13). It is already upstream via T1, but a direct
+# input belongs in the prerequisites.
+$(FIG)/F1_sensitivity_forest.png: analysis/18_figures.R $(TAB)/T1_characteristics.csv $(INT)/imputed_data.rds
 > $(R) analysis/18_figures.R
 
 # CAPTIONS.md is a prerequisite because 19_freeze_provenance.R validates its

@@ -25,6 +25,16 @@ sub  <- readRDS(file.path(int_dir, "substitution.rds"))
 pca  <- readRDS(file.path(int_dir, "pca.rds"))
 exp_ <- readRDS(file.path(int_dir, "exposure_pdi.rds"))
 
+# Every number in the manuscript describes the analytic sample, so figures that
+# quote a descriptive statistic must be restricted to it. `exposure_pdi.rds`
+# holds the whole day-1 recall population (7,629) and the whole replicate
+# population (6,575 pairs), which are NOT what the models were fitted on
+# (Amendment 13). This is the authoritative list of the analytic SEQNs.
+ANALYTIC <- readRDS(file.path(int_dir, "imputed_data.rds"))$completed[[1]]$SEQN
+stopifnot(length(ANALYTIC) > 0, !anyDuplicated(ANALYTIC))
+log_msg("analytic sample for figure statistics: n = ", length(ANALYTIC),
+        logfile = logfile)
+
 XLAB <- expression(paste("Difference in cardiometabolic dysfunction score (SD) per SD higher hPDI"))
 DIRN <- "← lower dysfunction        higher dysfunction →"
 
@@ -71,6 +81,14 @@ p$label <- sprintf("%s → %s\n(%s)", nice[p$from], nice[p$to], p$unit)
 p$flag  <- p$p_fdr < 0.05
 p <- p[order(p$estimate), ]
 
+# The zero-inflation that explains the wide legume intervals is a property of
+# the sample this model was fitted on, so it is computed there rather than
+# quoted from `05_group_diagnostics.csv`, whose pct_zero (75.7) is over the
+# whole day-1 recall population and answers a different question (Amendment 13).
+lg <- exp_$intake_day1$legumes[exp_$intake_day1$SEQN %in% ANALYTIC]
+stopifnot(length(lg) == length(ANALYTIC))
+legume_zero <- 100 * mean(lg == 0)
+
 f2 <- forest_gg(p,
   xlab = "Difference in cardiometabolic dysfunction score (SD) per unit substituted",
   title = "Pre-specified isocaloric food-group substitutions",
@@ -79,8 +97,9 @@ f2 <- forest_gg(p,
   caption = paste0(DIRN,
     "\nEstimates are differences of coefficients from a single model containing",
     " all 17 food groups, total energy and covariates.\nWide intervals for fruit",
-    " juice and potatoes reflect low power, not evidence of no association:",
-    " 76% of participants\nreported no legumes on the recall day."))
+    " juice and potatoes reflect low power, not evidence of no association: ",
+    sprintf("%.0f%% of the analytic sample\nreported no legumes on the recall day.",
+            legume_zero)))
 save_fig(f2, "F2_substitution_forest", W_DOUBLE, 3.6)
 log_msg("F2 written", logfile = logfile)
 
@@ -195,14 +214,29 @@ save_fig(f5, "F5_calibration", W_DOUBLE, 2.9)
 log_msg("F5 written", logfile = logfile)
 
 # --- F6: exposure distribution and day-to-day reliability -----------------
-h <- merge(exp_$pdi_day1[, c("SEQN", "hPDI")], exp_$pdi_day2[, c("SEQN", "hPDI")],
-           by = "SEQN", suffixes = c("_d1", "_d2"))
-r <- cor(h$hPDI_d1, h$hPDI_d2)
+# Both panels describe the analytic sample. Before Amendment 13 they were drawn
+# straight from the exposure files: panel A showed 7,629 day-1 respondents and
+# panel B 6,575 replicate pairs, while the caption -- and the Results, Abstract
+# and Methods -- said n = 2,739. The printed correlation was 0.50 against the
+# 0.49 reported everywhere else, because it was the correlation of a different
+# population. n and r are now derived from the rows actually plotted.
+d1 <- exp_$pdi_day1[exp_$pdi_day1$SEQN %in% ANALYTIC, ]
+h  <- merge(d1[, c("SEQN", "hPDI")],
+            exp_$pdi_day2[exp_$pdi_day2$SEQN %in% ANALYTIC, c("SEQN", "hPDI")],
+            by = "SEQN", suffixes = c("_d1", "_d2"))
+r  <- cor(h$hPDI_d1, h$hPDI_d2)
+# the replicate subsample is a strict subset of the analytic sample, and the
+# calibration in 10_calibration.R is fitted on exactly these rows
+stopifnot(nrow(d1) == length(ANALYTIC),
+          nrow(h) > 0, nrow(h) <= nrow(d1),
+          all(h$SEQN %in% ANALYTIC))
 
-qA <- ggplot(exp_$pdi_day1, aes(hPDI)) +
+qA <- ggplot(d1, aes(hPDI)) +
   geom_histogram(binwidth = 1, fill = ACCENT, colour = "white", linewidth = 0.2) +
   labs(x = "hPDI, day 1", y = "Participants",
-       title = "Distribution of healthful plant-based diet index") +
+       title = "Distribution of healthful plant-based diet index",
+       caption = sprintf("Analytic sample, n = %s.",
+                         format(nrow(d1), big.mark = ","))) +
   theme_manuscript() +
   theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3))
 
@@ -216,8 +250,9 @@ qB <- ggplot(h, aes(hPDI_d1, hPDI_d2)) +
            colour = "grey15", fontface = "bold") +
   labs(x = "hPDI, day 1", y = "hPDI, day 2",
        title = "Day-to-day agreement (replicate subsample)",
-       caption = paste("n = 2,739. A single 24-hour recall captures less than",
-                       "half the reliable\nsignal in usual plant-based diet quality.")) +
+       caption = sprintf(paste("n = %s. A single 24-hour recall captures less than",
+                               "half the reliable\nsignal in usual plant-based diet quality."),
+                         format(nrow(h), big.mark = ","))) +
   theme_manuscript() +
   theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.3))
 

@@ -99,7 +99,7 @@ leave the inference unchanged (beta range -0.056 to -0.071 against a primary of
 
 Filled markers survive Benjamini-Hochberg control at 5%. The wide intervals for
 fruit juice and potatoes reflect **limited power, not evidence of no
-association**: 76% of participants reported no legumes on the recall day.
+association**: 75% of the analytic sample reported no legumes on the recall day.
 
 ![Pre-specified isocaloric substitutions](outputs/figures/F2_substitution_forest.png)
 

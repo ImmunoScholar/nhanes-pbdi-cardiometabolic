@@ -813,3 +813,138 @@ byte-identical to the committed values.
 - *Existence is not correctness.* The check confirms a caption points at a real
   artefact. It cannot confirm the caption describes it — that is what Amendment 10
   had to be read to find, and no cheap check replaces reading the figure.
+
+---
+
+## Amendment 13 — 2026-07-26 — MANUSCRIPT FIGURE DEFECT (Figure 6 was drawn on the wrong population)
+
+**Trigger:** a full verification sweep of the repository — every artefact hash
+recomputed, every table parsed, every figure read — prompted by the closing line
+of Amendment 12, that existence is not correctness and no cheap check replaces
+reading the figure. Reading them found this.
+
+**Defect. `F6_exposure_reliability.png` described a population the study does not
+analyse.** `18_figures.R` built both panels straight from `exposure_pdi.rds`,
+which holds every participant with a dietary recall, and never restricted to the
+analytic sample:
+
+| | Plotted | Labelled, and correct |
+|---|---|---|
+| Panel A, day-1 distribution | 7,629 day-1 respondents | analytic sample, 3,131 |
+| Panel B, day-1 vs day-2 | 6,575 replicate pairs | 2,739 |
+| Panel B, printed correlation | **r = 0.50** | **r = 0.49** |
+
+The figure therefore printed a number that contradicts the result reported
+everywhere else. `CAPTIONS.md`, `RESULTS.md`, `ABSTRACT.md`, `METHODS.md` and
+`README.md` all give the correlation as 0.49 in a replicate subsample of 2,739,
+and all five are right: on the 2,739 analytic participants who also completed a
+day-2 recall, r = 0.4931. On the 6,575 pairs the figure actually plotted,
+r = 0.5013. A reader comparing Figure 6 with the Results text sees 0.50 against
+0.49 and cannot tell which is the study's number.
+
+**This is worse than Amendments 10 and 11 and should not be filed alongside them
+as an equal.** Both of those were diagnostic figures, and Amendment 11's was not
+even wrong on the current data. This is a manuscript figure, it was wrong on the
+committed data, and the error was visible on the page as a printed statistic.
+
+**The analysis was never affected, and that is checkable rather than asserted.**
+`10_calibration.R` fits regression calibration on the correct 2,739 —
+`10_calibration_extra.csv` records `replicate subsample n = 2739`, and the
+rebuilt Figure 6 now plots a set of exactly that size. The reliability ratio
+λ = 0.3883, the naive estimate −0.0646, the corrected estimate −0.1665 and
+Table 4 are unchanged and were never derived from the figure's data.
+
+**Second defect, same cause, smaller: the legume zero-rate.** F2's caption
+attributed the wide legume intervals to "76% of participants" reporting no
+legumes. 76% is neither population's value: the day-1 recall population gives
+75.70% and the analytic sample 75.18%. The number was hard-coded, and the
+rounding it came from does not correspond to either set. The relevant figure is
+the analytic sample's, because the substitution model is fitted there, so the
+caption is now computed as `100 * mean(legumes == 0)` over the analytic rows and
+reads 75%. `05_group_diagnostics.csv` keeps `pct_zero = 75.7` and is **not**
+changed: that table describes the exposure-scoring population, where zero-
+inflation determines the scoring levels, and 75.7 is the right answer to that
+question. Two populations, two correct numbers, and the defect was quoting one
+where the other belongs.
+
+**Third defect: a wrong cross-reference.** `RESULTS.md` cited the calibration
+result as "(Table 4, Figure F4)". F4 is the biomarker PCA; the calibration figure
+is F5. Corrected. It survived because it is line-wrapped as `Figure\nF4`, so a
+line-oriented search for `Figure F4` does not find it — the same wrapping problem
+Amendment 12's parser had to handle for `*Source:*` entries.
+
+**Change.**
+
+| | Before | After |
+|---|---|---|
+| Analytic SEQNs in `18_figures.R` | not loaded | `ANALYTIC` from `imputed_data.rds` |
+| F6 panel A data | `exp_$pdi_day1` (7,629) | restricted to `ANALYTIC` (3,131) |
+| F6 panel B data | full merge (6,575) | both sides restricted (2,739) |
+| F6 panel B `n` | hard-coded `"n = 2,739"` | `format(nrow(h), big.mark = ",")` |
+| F6 panel B `r` | `cor()` on 6,575 | `cor()` on the plotted rows |
+| F6 panel A caption | none | `sprintf("Analytic sample, n = %s", nrow(d1))` |
+| F2 legume rate | hard-coded `76%` | computed over `ANALYTIC`, prints 75% |
+
+Every displayed statistic on both figures is now derived from the rows being
+plotted. `stopifnot()` after the subsetting asserts that panel A is the whole
+analytic sample, that the replicate rows are a non-empty subset of it, and that
+the legume vector has one element per analytic participant — so a future change
+to how the analytic sample is defined fails the build rather than silently
+re-plotting the wrong people. `imputed_data.rds` was added to the F1 target's
+prerequisites, because `18_figures.R` now reads it directly; it was already
+upstream through Table 1, but a direct input belongs in the prerequisite list.
+
+**Verification.** `make all` re-executed scripts 18 and 19; nothing upstream
+re-ran, so no estimate was re-derived. `docs/artefact_checksums.csv` was compared
+against `git show HEAD:docs/artefact_checksums.csv` — the committed values, not
+the working-tree file, which `19_freeze_provenance.R` rewrites during the run so
+a comparison against it passes vacuously.
+
+**Exactly two of the 66 artefact hashes changed**, and they are the two figures
+edited:
+
+| Artefact | Before | After |
+|---|---|---|
+| `figures/F2_substitution_forest.png` | 267,518 bytes | 269,046 bytes |
+| `figures/F6_exposure_reliability.png` | 188,388 bytes | 193,667 bytes |
+
+The other 64 are byte-identical, including all 55 tables, F1, F3, F4, F5, the four
+diagnostics and the frozen analytic dataset at SHA-256 `303bcbe0da07eb89...` with
+n = 3,131. The substitution estimates (−0.0300 / −0.0060 / −0.0027 / −0.0077 /
+−0.0234) and calibration results (−0.0646 / 0.3883 / −0.1665) are unchanged; F2's
+five intervals sit where they did, only its caption text moved.
+
+**Controls, run rather than reasoned.**
+
+- *the divergence is real.* Removing the restriction reproduces the old figure
+  exactly: panel A 7,629, panel B 6,575, r = 0.5013 printing "0.50". Restoring it
+  gives 3,131 / 2,739 / 0.4931 printing "0.49".
+- *the guards fire.* Passing a truncated panel-A frame, a replicate set
+  containing non-analytic SEQNs, or the unfiltered legume vector each stops the
+  build at the corresponding `stopifnot()`.
+- *the figures print what is claimed.* Text extracted from the rebuilt SVGs reads
+  `Analytic sample, n = 3,131`, `r = 0.49`, `n = 2,739` and `75% of the analytic
+  sample` — read out of the artefact, not out of the source that wrote it.
+- *the figure and the calibration now agree by construction.* F6 panel B's row
+  count and `10_calibration_extra.csv`'s replicate n are compared and are
+  identical at 2,739.
+
+**Estimand affected: none.** No model was refitted. The primary estimate remains
+−0.0646 (−0.1062, −0.0231), every table is byte-identical, and the frozen dataset
+is unchanged. What changed is that Figure 6 now describes the sample the study
+analysed, and prints the correlation the study reports.
+
+**Scope, and what is not fixed.**
+
+- *The class is not exhausted.* Amendments 10, 11 and 13 are all one failure: a
+  displayed quantity computed from a different source than the one its label
+  names. The verification that found this one read every figure and recomputed
+  its statistics by hand. Nothing in the build does that, and Amendment 12's
+  check cannot — it validates that a caption's path resolves, not that its
+  numbers agree. A build-time check for *numeric* agreement between prose and
+  artefacts would need the manuscript's numbers to be generated rather than
+  typed, which is a larger change than this amendment should make.
+- *Prose numbers remain hand-written.* `README.md`, `DISCUSSION.md` and
+  `RESULTS.md` were corrected here by editing text. They can drift again.
+- *The `.svg` companions are still unhashed*, as recorded in Amendment 12; both
+  regenerated vectors are outside `docs/artefact_checksums.csv`.

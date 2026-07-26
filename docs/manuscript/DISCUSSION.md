@@ -106,7 +106,7 @@ reduces the effective sample size, and two of the five pre-specified
 substitutions — fruit juice for whole fruit, potatoes for legumes — produced
 confidence intervals wide enough to be uninformative. These are not evidence of
 absent associations. Legumes in particular were not consumed on the recall day
-by 76% of participants.
+by 75% of the analytic sample.
 
 **Unit incompatibility restricts the substitutions that can be estimated.**
 Groups measured in grams, ounce-equivalents and cup-equivalents cannot be

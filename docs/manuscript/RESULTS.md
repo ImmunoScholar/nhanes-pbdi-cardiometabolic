@@ -57,7 +57,7 @@ dysfunction (Table 3, Figure F2):
 | Potatoes | Legumes (per cup-eq) | −0.003 (−0.059, 0.054) | 0.93 |
 
 The two null swaps are **uninformative rather than negative**: legumes were not
-consumed on the recall day by 75.7% of participants and carried the largest
+consumed on the recall day by 75.2% of the analytic sample and carried the largest
 standard error of any group, and both confidence intervals span effects in
 either direction of comparable size to those observed elsewhere.
 
@@ -83,7 +83,7 @@ quality. The covariate-adjusted reliability ratio was **λ = 0.388 (0.319 to
 
 Regression calibration moved the estimate from −0.065 (−0.106 to −0.023) to
 **−0.167 (−0.290 to −0.055)**, a deattenuation factor of 2.58 (Table 4, Figure
-F4). Hypothesis H2 — that correction would change the estimated association —
+F5). Hypothesis H2 — that correction would change the estimated association —
 was supported. As an internal check, the bootstrap interval for the naive
 coefficient (−0.106 to −0.023) matched the independently derived
 imputation-pooled interval (−0.106 to −0.023).

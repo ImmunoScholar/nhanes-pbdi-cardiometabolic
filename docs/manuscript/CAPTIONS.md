@@ -85,8 +85,8 @@ pre-specified analysis is shown whether or not it was favourable.
 Estimates are differences of coefficients from the all-components model,
 holding total energy constant. Filled blue diamonds survive Benjamini–Hochberg
 control at 5%. The wide intervals for fruit juice and potatoes reflect limited
-power rather than evidence of no association: 76% of participants reported no
-legumes on the recall day.
+power rather than evidence of no association: 75% of the analytic sample
+reported no legumes on the recall day.
 *Source:* `outputs/figures/F2_substitution_forest.png` (and `.svg`)
 
 **Figure 3. Individual food-group associations from the all-components model.**
@@ -115,9 +115,12 @@ estimate remains conservative.
 *Source:* `outputs/figures/F5_calibration.png` (and `.svg`)
 
 **Figure 6. Exposure distribution and day-to-day reliability.**
-(A) Distribution of the healthful plant-based diet index on day 1. (B) Two-
-dimensional binned density of day-1 against day-2 index values in the replicate
-subsample (n = 2,739); the dashed line is the identity. The correlation of 0.49
+(A) Distribution of the healthful plant-based diet index on day 1 in the
+analytic sample (n = 3,131). (B) Two-dimensional binned density of day-1 against
+day-2 index values in the replicate subsample, that is the analytic participants
+who also completed a day-2 recall (n = 2,739); the dashed line is the identity.
+Both panels describe the analytic sample, not the wider day-1 recall population.
+The correlation of 0.49
 indicates that a single 24-hour recall captures less than half the reliable
 signal in usual plant-based diet quality.
 *Source:* `outputs/figures/F6_exposure_reliability.png` (and `.svg`)
