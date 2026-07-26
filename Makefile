@@ -99,7 +99,10 @@ $(TAB)/T1_characteristics.csv: analysis/17_tables.R $(INT)/sensitivity.rds $(INT
 $(FIG)/F1_sensitivity_forest.png: analysis/18_figures.R $(TAB)/T1_characteristics.csv
 > $(R) analysis/18_figures.R
 
-docs/PROVENANCE.md: analysis/19_freeze_provenance.R $(FIG)/F1_sensitivity_forest.png
+# CAPTIONS.md is a prerequisite because 19_freeze_provenance.R validates its
+# *Source:* paths against the artefact manifest. Without it, editing a caption
+# would not re-run the check that the caption is still true.
+docs/PROVENANCE.md: analysis/19_freeze_provenance.R $(FIG)/F1_sensitivity_forest.png docs/manuscript/CAPTIONS.md
 > $(R) analysis/19_freeze_provenance.R
 
 ## verify: rebuild everything and confirm artefact checksums are unchanged

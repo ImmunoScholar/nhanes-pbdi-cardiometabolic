@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-26 13:35:54 UTC
+Generated: 2026-07-26 13:54:57 UTC
 
 ## Study
 
@@ -10,10 +10,10 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `3029bb3108f74345ef548e7eafb831ff36315dc0`
+- Commit: `1a0daf17995e238bb07db1c86dada1230a0b59eb`
 - Branch: `main`
 - Working tree at freeze: **MODIFIED** (see below)
-  - ` M analysis/08_missing_data.R`
+  - ` M Makefile  M analysis/19_freeze_provenance.R  M docs/PROVENANCE.md  M docs/manuscript/CAPTIONS.md`
 
 ## Analytic dataset
 

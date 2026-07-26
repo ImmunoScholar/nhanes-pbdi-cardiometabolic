@@ -678,3 +678,138 @@ instance is already visible and is left for separate work:
 `docs/artefact_checksums.csv` does not list; the file `08_missing_data.R` actually
 produces is `08_mice_convergence.png`. Nothing checks that a caption's `*Source:*`
 path is an artefact the pipeline produces.
+
+---
+
+## Amendment 12 — 2026-07-26 — DOCUMENTATION DEFECT (caption cited a file that has never existed)
+
+**Trigger:** the closing paragraph of Amendment 11, which recorded this and left it.
+
+**Defect.** `docs/manuscript/CAPTIONS.md` gave the source of Figure S1 as
+`outputs/figures/08_mice_convergence_key.png`. No script writes that name, no
+build has ever produced it, and `docs/artefact_checksums.csv` does not list it.
+The file `08_missing_data.R` produces is `08_mice_convergence.png`. The `_key`
+suffix appears nowhere else in the repository, so this is not a rename that was
+half-applied; it is a filename that was never real.
+
+This belongs to the family of Amendments 10 and 11 — an artefact described in one
+place and generated in another — but sits one level further out. There the artefact
+disagreed with its own script; here the manuscript disagrees with the pipeline. The
+consequence is worse than a broken link: a reader following the caption finds
+nothing, and the file that *does* hold the figure is cited by no caption at all, so
+the convergence diagnostic is simultaneously unreachable from the manuscript and
+unattributed in the manifest.
+
+**The whole file was audited, not just the reported line.** Every `*Source:*` entry
+in `CAPTIONS.md` was resolved against `docs/artefact_checksums.csv` and against the
+filesystem: 26 cited paths across 6 tables, 6 figures and 6 supplementary items.
+
+| | Count | Status |
+|---|---|---|
+| Cited paths resolving to a hashed artefact | 19 | correct |
+| Cited `.svg` companions, present but unhashed | 6 | correct, see below |
+| Cited non-artefact input (`docs/wweia_adjudications.csv`) | 1 | correct, exists |
+| Cited paths that do not exist | **1** | `08_mice_convergence_key.png` |
+
+So the reported defect is the only one. That is the useful result of the audit and
+it is stated as a negative finding rather than left implied: the other 25 paths were
+checked and are right.
+
+**Change.** One character sequence in `CAPTIONS.md`:
+
+| | Before | After |
+|---|---|---|
+| Figure S1 `*Source:*` | `outputs/figures/08_mice_convergence_key.png` | `outputs/figures/08_mice_convergence.png` |
+
+The file's header paragraph was also corrected. It claimed every table and figure
+comes from `17_tables.R` and `18_figures.R`, which is true of the manuscript items
+and false of the three supplementary diagnostics, which come from `05` and `08` —
+the same class of statement, wrong in the same direction, on the same page.
+
+**The check that should have caught it.** `19_freeze_provenance.R` builds the
+artefact manifest and now, in a new step 3, reads every `*Source:*` path out of
+`CAPTIONS.md` and fails the build unless each one both exists on disk and appears in
+that manifest. It is cheap because the manifest is already in memory: it costs one
+`readLines()` and no hashing. Two properties of the parser are worth recording,
+because both were wrong in a first draft:
+
+- a `*Source:*` entry can wrap onto following lines — Tables 3 and S3 each cite two
+  files that way — so the entry is read to the next blank line, not to the end of
+  the line. A line-only parser silently checks the first path of each pair and skips
+  the second, which is a checker that reports success on half its input.
+- the `(and .svg)` convention names a file by extension rather than by path. Those
+  are expanded against the preceding path, so Figure 1's caption checks
+  `F1_sensitivity_forest.svg` as well as the `.png`.
+
+`docs/manuscript/CAPTIONS.md` was added as a prerequisite of the `docs/PROVENANCE.md`
+target. Without it, `make` considers the build satisfied when only a caption has
+changed, and the check would not run on precisely the edit most likely to break it.
+
+**One exemption, and it is named rather than derived.** `save_fig()` writes a `.svg`
+beside every manuscript `.png`, and `hash_dir()` hashes only `.png`, so those six
+files are cited by captions, present on disk, and absent from the manifest. They are
+therefore checked for existence alone.
+
+The first implementation derived that exemption from the manifest — exempting any
+extension the manifest did not happen to contain — which reads as the more elegant
+form and is wrong. It exempts `.log`, `.rds`, `.pdf` and everything else the manifest
+does not cover, so it accepts a caption pointing at any file that merely exists. This
+was not spotted by reading it. It was spotted because the guard was tested against a
+caption citing `outputs/logs/19_freeze.log`, and **the build passed**. A checker whose
+own failure mode is the defect it exists to prevent is worth recording: the exemption
+is now the literal string `"svg"`, and control 2 below fails as it should.
+
+**Verification.** `make all` re-executed `19_freeze_provenance.R` alone; every other
+target was up to date, so nothing was re-derived and this is a weaker check than
+Amendments 8 and 9's clean rebuilds, not an equal one. The regenerated
+`docs/artefact_checksums.csv` was compared against
+`git show HEAD:docs/artefact_checksums.csv` — the committed values, not the
+working-tree file, which that script rewrites during the run so a comparison against
+it passes vacuously.
+
+**None of the 66 artefact hashes changed**, and none could have: this amendment
+changes a Markdown file, a Makefile prerequisite and a validation step that writes
+nothing. The frozen dataset is unchanged at SHA-256 `303bcbe0da07eb89...` and n = 3,131.
+The build log gained one line: `26 caption sources checked (19 against the artefact
+manifest, 7 by existence only)`.
+
+**The guard was tested by breaking the file four ways**, each restored afterwards:
+
+- *the original defect.* Putting `08_mice_convergence_key.png` back fails the build
+  with `not on disk` and `not an artefact`. The defect this amendment fixes is now
+  unmergeable.
+- *real file, not an artefact.* Citing `outputs/logs/19_freeze.log` fails with
+  `not an artefact`. This is the control that failed against the first implementation.
+- *a `.svg` claim that is not true.* Adding `(and .svg)` to Figure S3, whose script
+  writes no vector companion, fails with `not on disk:
+  outputs/figures/05_bland_altman_hPDI.svg`. The parenthetical is checked, not trusted.
+- *the wrapped second path.* Breaking `12_not_estimable_swaps.csv`, which is the
+  continuation line of Table 3's entry, is caught — the multi-line parse is exercised
+  rather than assumed.
+
+No `Rplots.pdf` appeared: this step opens no graphics device.
+
+**Estimand affected: none.** Nothing in this amendment touches data, a model, or a
+figure. It corrects a filename in a caption and adds a validation step that fails the
+build or does nothing. Every table, every figure and the frozen dataset are
+byte-identical to the committed values.
+
+**Scope, and what is not fixed.**
+
+- *The six `.svg` files are not hashed.* They are committed, cited by the manuscript
+  and outside `docs/artefact_checksums.csv`, so their integrity is not pinned and
+  `make verify` cannot detect a change to them. Extending `hash_dir()` to `.svg` is
+  one line, and it is deliberately not taken here: `svglite` output depends on
+  system font metrics in a way `ragg` output does not, and Amendment 9 established
+  cross-environment byte-stability for the raster figures only. Hashing the vectors
+  without first demonstrating they reproduce across environments would convert an
+  unverified claim into a build that fails on someone else's machine. That
+  demonstration is separate work.
+- *The check is one-directional.* It proves every citation resolves; it does not prove
+  every artefact is cited. The reverse would flag `13_scree.png` and the intermediate
+  tables, which are diagnostics and legitimately uncited, so there is no clean rule to
+  enforce. The asymmetry is why `08_mice_convergence.png` sat uncited for the whole
+  life of the project without complaint.
+- *Existence is not correctness.* The check confirms a caption points at a real
+  artefact. It cannot confirm the caption describes it — that is what Amendment 10
+  had to be read to find, and no cheap check replaces reading the figure.

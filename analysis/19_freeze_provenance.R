@@ -1,7 +1,8 @@
 # ---------------------------------------------------------------------------
 # 19_freeze_provenance.R
 # Final preservation step. Freezes the analytic dataset, hashes every artefact,
-# and records the exact conditions under which the results were produced.
+# checks that every manuscript caption cites one, and records the exact
+# conditions under which the results were produced.
 #
 # Run LAST. Everything it hashes must already exist.
 # ---------------------------------------------------------------------------
@@ -71,7 +72,63 @@ artefacts <- artefacts[order(artefacts$file), ]
 write.csv(artefacts, file.path(doc_dir, "artefact_checksums.csv"), row.names = FALSE)
 log_msg(nrow(artefacts), " artefacts hashed", logfile = logfile)
 
-# --- 3. environment and source provenance ---------------------------------
+# --- 3. every caption must cite an artefact the pipeline produces ----------
+# Amendments 10 and 11 fixed artefacts that did not show what they claimed.
+# This is the same class one level up: a caption naming a source file no script
+# writes. CAPTIONS.md gave Figure S1 as `08_mice_convergence_key.png`, which has
+# never existed -- the real file is `08_mice_convergence.png`. Nothing caught it
+# because nothing looked.
+#
+# The check is deliberately one-directional. Every cited path must be a real
+# artefact; the converse is not required, because most artefacts (diagnostic
+# tables, intermediate figures) are legitimately never cited.
+caption_sources <- function(path) {
+  txt <- readLines(path, warn = FALSE)
+  out <- character(0)
+  for (s in grep("^\\*Source:\\*", txt)) {
+    # an entry may wrap onto following lines; it ends at the next blank line
+    e <- s
+    while (e < length(txt) && nzchar(trimws(txt[e + 1L]))) e <- e + 1L
+    toks <- gsub("`", "", unlist(regmatches(txt[s:e], gregexpr("`[^`]+`", txt[s:e]))))
+    last <- NA_character_
+    for (tk in toks) {
+      if (grepl("/", tk, fixed = TRUE)) {
+        last <- tk; out <- c(out, tk)              # a path
+      } else if (grepl("^\\.[A-Za-z0-9]+$", tk) && !is.na(last)) {
+        out <- c(out, sub("\\.[^.]+$", tk, last))  # the "(and `.svg`)" form
+      }
+    }
+  }
+  unique(out)
+}
+cited   <- caption_sources(file.path(doc_dir, "manuscript", "CAPTIONS.md"))
+absent  <- cited[!file.exists(file.path(here::here(), cited))]
+
+# One exemption, named rather than derived. `save_fig()` writes a `.svg`
+# companion beside every manuscript `.png` and hash_dir() hashes only `.png`,
+# so six captions cite a real file the manifest does not carry; those are
+# checked for existence alone. Deriving the exemption instead -- exempting any
+# extension the manifest happened not to cover -- was tried first and silently
+# accepted a caption pointing at `outputs/logs/19_freeze.log`.
+UNHASHED_EXT <- "svg"
+checkable <- grepl("^outputs/", cited) &
+             !(tolower(tools::file_ext(cited)) %in% UNHASHED_EXT)
+unlisted  <- cited[checkable & !(sub("^outputs/", "", cited) %in% artefacts$file)]
+
+if (length(absent) || length(unlisted)) {
+  stop("docs/manuscript/CAPTIONS.md cites sources the build does not produce.\n",
+       if (length(absent))
+         paste0("  not on disk:   ", absent, collapse = "\n"),
+       if (length(absent) && length(unlisted)) "\n",
+       if (length(unlisted))
+         paste0("  not an artefact: ", unlisted, collapse = "\n"),
+       call. = FALSE)
+}
+log_msg(length(cited), " caption sources checked (",
+        sum(checkable), " against the artefact manifest, ",
+        length(cited) - sum(checkable), " by existence only)", logfile = logfile)
+
+# --- 4. environment and source provenance ---------------------------------
 git <- function(args) {
   o <- suppressWarnings(tryCatch(system2("git", args, stdout = TRUE, stderr = FALSE),
                                  error = function(e) NA_character_))
