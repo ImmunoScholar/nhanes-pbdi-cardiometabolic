@@ -1,0 +1,41 @@
+"unit","from","to","se_diff","se_a","se_b","ratio_to_max_single"
+"oz eq","nuts","whole_grains",0.01387,0.00958,0.00791,1.45
+"oz eq","refined_grains","whole_grains",0.00994,0.00958,0.00565,1.04
+"oz eq","eggs","whole_grains",0.02224,0.00958,0.01968,1.13
+"oz eq","fish_seafood","whole_grains",0.01112,0.00958,0.00552,1.16
+"oz eq","meat","whole_grains",0.01054,0.00958,0.00538,1.1
+"oz eq","refined_grains","nuts",0.00796,0.00791,0.00565,1.01
+"oz eq","eggs","nuts",0.02034,0.00791,0.01968,1.03
+"oz eq","fish_seafood","nuts",0.00919,0.00791,0.00552,1.16
+"oz eq","meat","nuts",0.00852,0.00791,0.00538,1.08
+"oz eq","eggs","refined_grains",0.01908,0.00565,0.01968,0.97
+"oz eq","fish_seafood","refined_grains",0.00709,0.00565,0.00552,1.25
+"oz eq","meat","refined_grains",0.00617,0.00565,0.00538,1.09
+"oz eq","fish_seafood","eggs",0.0202,0.01968,0.00552,1.03
+"oz eq","meat","eggs",0.01966,0.01968,0.00538,1
+"oz eq","meat","fish_seafood",0.0059,0.00552,0.00538,1.07
+"cup eq","vegetables","fruits",0.02249,0.01419,0.01517,1.48
+"cup eq","legumes","fruits",0.04032,0.01419,0.03718,1.08
+"cup eq","fruit_juices","fruits",0.02578,0.01419,0.0212,1.22
+"cup eq","potatoes","fruits",0.02761,0.01419,0.02255,1.22
+"cup eq","dairy","fruits",0.01757,0.01419,0.01085,1.24
+"cup eq","legumes","vegetables",0.04238,0.01517,0.03718,1.14
+"cup eq","fruit_juices","vegetables",0.03081,0.01517,0.0212,1.45
+"cup eq","potatoes","vegetables",0.02595,0.01517,0.02255,1.15
+"cup eq","dairy","vegetables",0.01655,0.01517,0.01085,1.09
+"cup eq","fruit_juices","legumes",0.04372,0.03718,0.0212,1.18
+"cup eq","potatoes","legumes",0.02915,0.03718,0.02255,0.78
+"cup eq","dairy","legumes",0.03924,0.03718,0.01085,1.06
+"cup eq","potatoes","fruit_juices",0.03161,0.0212,0.02255,1.4
+"cup eq","dairy","fruit_juices",0.02315,0.0212,0.01085,1.09
+"cup eq","dairy","potatoes",0.02201,0.02255,0.01085,0.98
+"grams","tea_coffee","vegetable_oils",0.00081,0.00082,2e-05,0.99
+"grams","ssb","vegetable_oils",0.00081,0.00082,3e-05,0.99
+"grams","sweets_desserts","vegetable_oils",0.00074,0.00082,2e-04,0.9
+"grams","animal_fat","vegetable_oils",0.00106,0.00082,9e-04,1.18
+"grams","ssb","tea_coffee",3e-05,2e-05,3e-05,1
+"grams","sweets_desserts","tea_coffee",2e-04,2e-05,2e-04,1
+"grams","animal_fat","tea_coffee",9e-04,2e-05,9e-04,1
+"grams","sweets_desserts","ssb",0.00019,3e-05,2e-04,0.95
+"grams","animal_fat","ssb",0.00089,3e-05,9e-04,0.99
+"grams","animal_fat","sweets_desserts",9e-04,2e-04,9e-04,1

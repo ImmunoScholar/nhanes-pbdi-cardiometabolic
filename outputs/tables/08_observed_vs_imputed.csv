@@ -1,0 +1,4 @@
+"variable","n_observed","n_imputed_cells","mean_observed","mean_imputed","sd_observed","sd_imputed"
+"pir",3054,427,2.629,2.486,1.621,1.618
+"alcohol_dpd",3102,379,0.483,0.278,1.172,0.733
+"met_min_wk",3458,23,4485.44,4933,7271.743,7635.067

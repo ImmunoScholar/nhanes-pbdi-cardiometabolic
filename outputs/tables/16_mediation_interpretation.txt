@@ -1,0 +1,17 @@
+EXPLORATORY ANALYSIS -- NOT CAUSAL MEDIATION.
+
+Adjusting for adiposity attenuates the hPDI coefficient. Under a causal DAG
+in which diet influences adiposity which influences cardiometabolic status,
+that is the pattern adjustment for a mediator produces. But the same pattern
+arises if adiposity influences diet, or if an unmeasured common cause affects
+both -- and this study cannot distinguish those, because exposure, adiposity
+and outcome are measured at one examination.
+
+No proportion mediated is reported: with temporal ordering assumed rather
+than observed, and with residual confounding by latent socioeconomic position
+that the observed variables cannot fully remove (see 00_dag.R), such a figure
+would carry no interpretation.
+
+Supported statement:
+  The cross-sectional data were compatible with adiposity-related pathways
+  contributing to the observed association.

@@ -1,0 +1,6 @@
+"from","to","unit","estimate","se","ci_low","ci_high","p_raw","p_fdr"
+"refined_grains","whole_grains","per oz eq",-0.03,0.00995,-0.0495,-0.0105,0.00258,0.0129
+"fruit_juices","fruits","per cup eq",-0.00604,0.0256,-0.0562,0.0441,0.813,0.926
+"potatoes","legumes","per cup eq",-0.00268,0.0288,-0.0591,0.0537,0.926,0.926
+"ssb","tea_coffee","per 100 g",-0.00765,0.00317,-0.0139,-0.00144,0.0158,0.0263
+"meat","nuts","per oz eq",-0.0234,0.00855,-0.0402,-0.00669,0.00609,0.0152

@@ -1,0 +1,6 @@
+"quantity","estimate","ci_low","ci_high"
+"hPDI -> dysfunction, NOT adjusted for adiposity",-0.0646,-0.1062,-0.0231
+"hPDI -> dysfunction, adjusted for BMI",-0.0258,-0.0589,0.0073
+"Difference on adjustment (attenuation)",-0.0389,-0.0615,-0.0105
+"hPDI -> BMI (kg/m2 per SD hPDI)",-0.7045,-1.1634,-0.2456
+"BMI -> dysfunction (per kg/m2, adjusted for hPDI)",0.0548,0.0516,0.058

@@ -1,0 +1,10 @@
+"biomarker","PC1","PC2"
+"waist",0.742,0.229
+"log_tg",0.657,0.189
+"hdl_rev_log",0.702,0.113
+"log_glucose",0.186,0.921
+"map",0.316,0.142
+"log_homa_ir",0.635,0.516
+"log_hba1c",0.135,0.928
+"log_hscrp",0.547,0.141
+"log_alt",0.526,-0.012

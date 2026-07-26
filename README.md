@@ -55,6 +55,92 @@ Novelty statements in the manuscript are phrased as *"we identified no study
 that…"*, naming databases and search dates. Scopus and Embase were not
 searchable during protocol development; that gap is documented, not concealed.
 
+## Results
+
+Survey-weighted, cross-sectional associations in non-pregnant US adults aged
+>=20 (analytic *n* = 3,131; design effect 2.74). Every number below is written
+by `analysis/17_tables.R` and every figure by `analysis/18_figures.R` -- none is
+transcribed by hand. Figures and tables are committed so they can be read
+without installing R.
+
+| Quantity | Estimate (95% CI) | Source table |
+|---|---|---|
+| **hPDI per SD -> cardiometabolic dysfunction (primary)** | **-0.065 (-0.106, -0.023)** | `T2_primary_secondary` |
+| Same, corrected for within-person recall error | -0.167 (-0.290, -0.055) | `T4_calibration` |
+| Reliability ratio (lambda) of a single 24-h recall | 0.388 (0.319, 0.434) | `T4_calibration` |
+| uPDI per SD (unhealthful plant-based index) | 0.050 (0.015, 0.086) | `T2_primary_secondary` |
+| Refined grains -> whole grains (isocaloric, per oz eq) | -0.030 (-0.050, -0.011) | `T3_substitution` |
+| Meat -> nuts (isocaloric, per oz eq) | -0.023 (-0.040, -0.007) | `T3_substitution` |
+| Sugar-sweetened beverages -> tea/coffee (per 100 g) | -0.008 (-0.014, -0.001) | `T3_substitution` |
+| Adiposity-lipid-inflammation axis (PC1) | -0.119 (-0.179, -0.060) | `T6_axis_associations` |
+| Glycaemic axis (PC2) | -0.011 (-0.060, 0.039) | `T6_axis_associations` |
+
+Three things are worth reading off these numbers. The association sits on the
+**adiposity-lipid-inflammation axis, not the glycaemic axis**. Correcting for
+single-day recall error **increases the coefficient about 2.6-fold**, because a
+single 24-hour recall captures less than half the reliable signal in usual diet
+quality. And the healthful and unhealthful indices point in **opposite**
+directions, so "plant-based" alone does not carry the signal -- which is the
+question the substitution models are built to answer.
+
+Against that, the E-value is 1.31. That is modest: residual socioeconomic
+confounding is structural in this design and remains a live alternative
+explanation, stated as such rather than argued away.
+
+### Figure 1. Primary estimate and pre-specified sensitivity analyses
+
+Every pre-specified analysis is shown whether or not it was favourable. All nine
+leave the inference unchanged (beta range -0.056 to -0.071 against a primary of
+-0.065).
+
+![Primary estimate and nine pre-specified sensitivity analyses](outputs/figures/F1_sensitivity_forest.png)
+
+### Figure 2. Pre-specified isocaloric food-group substitutions
+
+Filled markers survive Benjamini-Hochberg control at 5%. The wide intervals for
+fruit juice and potatoes reflect **limited power, not evidence of no
+association**: 76% of participants reported no legumes on the recall day.
+
+![Pre-specified isocaloric substitutions](outputs/figures/F2_substitution_forest.png)
+
+### Figure 3. All 17 food-group coefficients
+
+Units differ across groups and are printed beside each label; **coefficients are
+not comparable across units**. Vegetable oils and animal fat are expressed per
+100 g, an unusually large serving, which is why their intervals are widest.
+
+![Coefficients for all 17 mutually exclusive food groups](outputs/figures/F3_food_group_coefficients.png)
+
+### Figure 4. Biomarker principal component analysis (exploratory)
+
+Varimax-rotated loadings on the survey-weighted correlation matrix of nine
+biomarkers, with a scree plot and parallel-analysis thresholds. Parallel
+analysis has no survey-weighted implementation and tends to over-retain, so it
+is used as a heuristic supported by the scree plot -- not as a decision rule.
+
+![PCA loadings and scree plot](outputs/figures/F4_pca.png)
+
+### Figure 5. Effect of correcting for within-person recall error
+
+The correction is **partial**. Recall error in these data is differential with
+respect to adiposity, which violates the classical non-differential assumption,
+so the calibrated estimate remains conservative.
+
+![Naive versus regression-calibrated estimate](outputs/figures/F5_calibration.png)
+
+### Figure 6. Exposure distribution and day-to-day reliability
+
+Day-1 against day-2 index values in the replicate subsample (*n* = 2,739). The
+day-to-day correlation of 0.49 is the entire motivation for the calibration
+step.
+
+![hPDI distribution and day-1 vs day-2 reliability](outputs/figures/F6_exposure_reliability.png)
+
+Supplementary diagnostics (imputation convergence, observed-versus-imputed
+distributions, and scoring-rule agreement) are in `outputs/figures/`; all 55
+generated tables are in `outputs/tables/`. Captions with source-file
+attribution for every item are in `docs/manuscript/CAPTIONS.md`.
+
 ## Pipeline
 
 | Script | Purpose |

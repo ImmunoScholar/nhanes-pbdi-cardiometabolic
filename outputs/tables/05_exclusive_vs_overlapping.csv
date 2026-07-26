@@ -1,0 +1,4 @@
+"score","pearson","spearman","mean_exclusive","mean_overlapping","sd_exclusive","sd_overlapping","mean_abs_diff"
+"PDI",0.9638,0.961,44.68,45.13,5.75,5.85,1.04
+"hPDI",0.9709,0.9685,51.42,51.4,6.7,6.81,1.08
+"uPDI",0.9646,0.9621,53.01,52.45,6.36,6.28,1.14

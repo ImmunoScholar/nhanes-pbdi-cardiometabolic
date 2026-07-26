@@ -1,0 +1,8 @@
+"var1","var2","r"
+"animal_fat","energy_kcal",0.628
+"refined_grains","energy_kcal",0.571
+"vegetable_oils","energy_kcal",0.555
+"animal_fat","dairy",0.548
+"dairy","energy_kcal",0.454
+"meat","energy_kcal",0.443
+"refined_grains","animal_fat",0.438

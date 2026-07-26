@@ -1,0 +1,4 @@
+"score","pearson","spearman","ba_bias","ba_sd","ba_loa_lower","ba_loa_upper","pct_same_quintile","pct_moved_1_quintile","pct_moved_2plus","weighted_kappa"
+"PDI",0.9489,0.9436,-5.456,1.841,-9.06,-1.85,66.9,31.7,1.4,0.9075
+"hPDI",0.9623,0.9592,1.341,1.828,-2.24,4.92,71.1,28.3,0.6,0.9226
+"uPDI",0.957,0.9537,1.084,1.858,-2.56,4.72,68,31.3,0.7,0.9156

@@ -1,0 +1,31 @@
+"food_code","description","category_1718","cat_desc_1718","category_1920","cat_desc_1920","pdi_group_1718","pdi_group_1920","changes_pdi_group","affects_exposure"
+58123120,"Sweet bread dough, filled with bean paste, meatless, steamed",5506,"Doughnuts, sweet rolls, pastries",3406,"Egg rolls, dumplings, sushi","sweets_desserts","not_wweia_derived",TRUE,TRUE
+95342000,"Fruit juice, acai blend",7006,"Other fruit juice",7204,"Fruit drinks","not_wweia_derived","ssb",TRUE,TRUE
+11710000,"Infant formula, NFS",9402,"Formula, ready-to-feed",9404,"Formula, prepared from powder","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+11710930,"Infant formula, NS as to form (Gerber Graduates Gentle)",9402,"Formula, ready-to-feed",9404,"Formula, prepared from powder","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27500050,"Sandwich, NFS",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27500300,"Wrap sandwich, NFS",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27510130,"Beef barbecue submarine sandwich, on bun",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27510700,"Meatball and spaghetti sauce submarine sandwich",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27510910,"Corned beef sandwich",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27510950,"Reuben sandwich, corned beef sandwich with sauerkraut and cheese, with spread",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27513010,"Roast beef sandwich",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27513050,"Roast beef sandwich with cheese",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27513070,"Roast beef submarine sandwich, on roll, au jus",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27516010,"Gyro sandwich (pita bread, beef, lamb, onion, condiments), with tomato and spread",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27520340,"Ham salad sandwich",3708,"Other sandwiches (single code)",3740,"Deli and cured meat sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27520410,"Cuban sandwich, with spread",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27520500,"Pork sandwich, on white roll, with onions, dill pickles and barbecue sauce",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27520510,"Pork barbecue sandwich or Sloppy Joe, on bun",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27520520,"Pork sandwich",3708,"Other sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27540130,"Chicken barbecue sandwich",3704,"Chicken/turkey sandwiches (single code)",3742,"Meat and BBQ sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+27560710,"Sausage sandwich",3706,"Egg/breakfast sandwiches (single code)",3703,"Frankfurter sandwiches","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+41901020,"Soyburger, meatless, with cheese on bun",2806,"Processed soy products",3744,"Vegetable sandwiches/burgers","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+51136000,"Bruschetta",3708,"Other sandwiches (single code)",3744,"Vegetable sandwiches/burgers","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+58174100,"Dosa (Indian), with filling",3208,"Turnovers and other grain-based items",4404,"Pancakes, waffles, French toast","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+58200250,"Wrap sandwich, filled with vegetables",3708,"Other sandwiches (single code)",3744,"Vegetable sandwiches/burgers","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+67250150,"Mixed fruit juice with lowfat yogurt, baby food",9010,"Baby food: yogurt",9007,"Baby food: mixtures","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+67430500,"Yogurt and fruit snack, baby food",9010,"Baby food: yogurt",9012,"Baby food: snacks and sweets","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+74701000,"Tomato sandwich",3708,"Other sandwiches (single code)",3744,"Vegetable sandwiches/burgers","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+75411020,"Corn fritter",6430,"Fried vegetables",4402,"Biscuits, muffins, quick breads","not_wweia_derived","not_wweia_derived",FALSE,FALSE
+91728000,"Nut roll, fudge or nougat, caramel and nuts",5702,"Candy containing chocolate",5704,"Candy not containing chocolate","sweets_desserts","sweets_desserts",FALSE,FALSE

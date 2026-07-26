@@ -1,0 +1,11 @@
+"component","sex","n","wtd_mean","wtd_sd"
+"z_waist_cm",1,1768,0,1
+"z_waist_cm",2,1852,0,1
+"z_log_tg",1,1792,0,1
+"z_log_tg",2,1913,0,1
+"z_hdl_rev",1,1792,0,1
+"z_hdl_rev",2,1913,0,1
+"z_log_glucose",1,1822,0,1
+"z_log_glucose",2,1947,0,1
+"z_map_mmhg",1,1701,0,1
+"z_map_mmhg",2,1725,0,1

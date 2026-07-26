@@ -1,0 +1,15 @@
+| model | outcome | term | estimate_ci | p_fdr |
+| --- | --- | --- | --- | --- |
+| PRIMARY: hPDI per SD | cmd_score | hPDI_sd | -0.065 (-0.106, -0.023) | NA |
+| PDI per SD | cmd_score | PDI_sd | -0.035 (-0.071, 0.000) | NA |
+| uPDI per SD | cmd_score | uPDI_sd | 0.050 (0.015, 0.086) | NA |
+| hPDI quintiles (ref Q1) | cmd_score | hPDI_qQ2 | -0.021 (-0.101, 0.059) | NA |
+| hPDI quintiles (ref Q1) | cmd_score | hPDI_qQ3 | -0.089 (-0.182, 0.005) | NA |
+| hPDI quintiles (ref Q1) | cmd_score | hPDI_qQ4 | -0.062 (-0.156, 0.032) | NA |
+| hPDI quintiles (ref Q1) | cmd_score | hPDI_qQ5 | -0.171 (-0.311, -0.030) | NA |
+| hPDI + BMI (OVER-ADJUSTED: BMI is a mediator) | cmd_score | hPDI_sd | -0.026 (-0.059, 0.007) | NA |
+| hPDI per SD (complete case) | cmd_score | hPDI_sd | -0.064 (-0.124, -0.004) | NA |
+| hPDI per SD -> log_homa_ir | log_homa_ir | hPDI_sd | -0.089 (-0.142, -0.036) | 0.002070 |
+| hPDI per SD -> hba1c_pct | hba1c_pct | hPDI_sd | -0.010 (-0.058, 0.038) | 0.686000 |
+| hPDI per SD -> log_hscrp | log_hscrp | hPDI_sd | -0.136 (-0.199, -0.072) | 0.000103 |
+| hPDI per SD -> log_alt | log_alt | hPDI_sd | 0.007 (-0.022, 0.036) | 0.686000 |

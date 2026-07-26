@@ -1,0 +1,52 @@
+Adiposity Alcohol Age    , Energy , PhysAct, hPDI   
+Adiposity Education Age    , Energy , PhysAct, hPDI   
+Adiposity Income Age    , Energy , PhysAct, hPDI   
+Adiposity RaceEth Age    , Energy , PhysAct, hPDI   
+Adiposity Sex Age    , Energy , PhysAct, hPDI   
+Adiposity Smoking Age    , Energy , PhysAct, hPDI   
+Adiposity Supplements Age    , Energy , PhysAct, hPDI   
+Age Alcohol NULL
+Age Education NULL
+Age Energy NULL
+Age Income NULL
+Age PhysAct NULL
+Age RaceEth NULL
+Age Sex NULL
+Age Smoking NULL
+Age Supplements NULL
+Alcohol Education NULL
+Alcohol Energy NULL
+Alcohol Income NULL
+Alcohol PhysAct NULL
+Alcohol RaceEth NULL
+Alcohol Sex NULL
+Alcohol Smoking NULL
+Alcohol Supplements NULL
+Education Energy NULL
+Education Income NULL
+Education PhysAct NULL
+Education RaceEth NULL
+Education Sex NULL
+Education Smoking NULL
+Education Supplements NULL
+Energy Income NULL
+Energy PhysAct NULL
+Energy RaceEth NULL
+Energy Sex NULL
+Energy Smoking NULL
+Energy Supplements NULL
+Income PhysAct NULL
+Income RaceEth NULL
+Income Sex NULL
+Income Smoking NULL
+Income Supplements NULL
+PhysAct RaceEth NULL
+PhysAct Sex NULL
+PhysAct Smoking NULL
+PhysAct Supplements NULL
+RaceEth Sex NULL
+RaceEth Smoking NULL
+RaceEth Supplements NULL
+Sex Smoking NULL
+Sex Supplements NULL
+Smoking Supplements NULL
