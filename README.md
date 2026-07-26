@@ -181,7 +181,8 @@ than silently. Amending it requires an explicit, committed protocol amendment.
 ## Reproducing
 
 ```bash
-git clone <repo-url> && cd nhanes-pbdi-cardiometabolic
+git clone https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic.git
+cd nhanes-pbdi-cardiometabolic
 R -e 'renv::restore()'
 make all
 ```
@@ -196,5 +197,9 @@ All are public and require no application, licence, or credential.
 
 ## Licence
 
-Code: MIT. Text and figures: CC-BY-4.0. Neither NHANES nor USDA source data
-are redistributed here.
+Code (`analysis/`, `R/`, `Makefile`): MIT, in [LICENSE](LICENSE).
+Manuscript text, tables and figures (`docs/`, `outputs/`): CC BY 4.0.
+Neither NHANES nor USDA source data are redistributed here; they are fetched
+from CDC and USDA at build time under those agencies' own terms.
+
+Which terms apply to which files is set out in [NOTICE.md](NOTICE.md).

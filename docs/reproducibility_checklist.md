@@ -79,7 +79,8 @@ Each item states what was done and where the evidence lives. Items that were
 ## How to reproduce
 
 ```bash
-git clone <repo-url> && cd nhanes-pbdi-cardiometabolic
+git clone https://github.com/ImmunoScholar/nhanes-pbdi-cardiometabolic.git
+cd nhanes-pbdi-cardiometabolic
 R -e 'renv::restore(prompt = FALSE)'
 make all       # rebuild everything from public source data
 make verify    # rebuild from clean and confirm artefact checksums are identical
