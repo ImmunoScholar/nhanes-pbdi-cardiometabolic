@@ -100,15 +100,41 @@ log_msg("each completed dataset: n = ", nrow(completed[[1]]), logfile = logfile)
 # --- diagnostics -----------------------------------------------------------
 # 1. Convergence: chains should mix, with no trend across iterations.
 # ragg rather than grDevices::png, with the font family pinned -- see the note
-# in 13_pca.R and Amendment 9. 2000 x 1400 px / 160 dpi. These two diagnostics
-# are lattice, not base, so the family is pinned through the trellis grid
-# parameters rather than par(); trellis settings are per-device, so this has to
-# follow each device call.
+# in 13_pca.R and Amendment 9. These two diagnostics are lattice, not base, so
+# the family is pinned through the trellis grid parameters rather than par();
+# trellis settings are per-device, so this has to follow each device call.
+#
+# plot.mids() draws two panels per imputed variable -- chain mean and chain sd.
+# A raster device holds ONE page, so any layout smaller than the panel count
+# makes lattice draw each page over the last and leaves only the final page in
+# the file. The former layout = c(2, 4) gave 8 panels per page over 22 panels,
+# so the artefact showed only the last 3 of the 11 imputed variables and could
+# not support the convergence claim above for the other 8 (Amendment 10). The
+# layout is therefore sized to the variable count -- two columns (mean, sd),
+# one row per variable, one page.
+#
+# The count is derived with the same chainMean rule plot.mids() applies
+# internally, before the device is opened: calling plot() with no device open
+# would start the default pdf device and litter the repository with Rplots.pdf.
+chain_ok  <- apply(!(is.nan(imp$chainMean) | is.na(imp$chainMean)), 1, all)
+conv_vars <- names(chain_ok)[chain_ok]
+
+# 12.5 in wide at 160 dpi as before; the height scales at the previous per-row
+# height (8.75 in / 4 rows), so each panel keeps its former size and only the
+# page grows: 2000 x 3850 px for the 11 variables imputed here.
 ragg::agg_png(file.path(fig_dir, "08_mice_convergence.png"), width = 12.5,
-              height = 8.75, units = "in", res = 160, background = "white")
+              height = (8.75 / 4) * length(conv_vars), units = "in", res = 160,
+              background = "white")
 lattice::trellis.par.set(grid.pars = list(fontfamily = "Liberation Sans"))
-print(plot(imp, layout = c(2, 4)))
+conv_plot <- plot(imp, layout = c(2, length(conv_vars)))
+# Fail the build rather than silently truncate again if mice's panel-selection
+# rule ever diverges from the count used to size the device.
+stopifnot(length(conv_plot$panel.args) == 2L * length(conv_vars),
+          prod(conv_plot$layout[1:2]) >= length(conv_plot$panel.args))
+print(conv_plot)
 dev.off()
+log_msg("convergence figure: ", length(conv_vars), " imputed variables, ",
+        2L * length(conv_vars), " panels on one page", logfile = logfile)
 
 # 2. Observed vs imputed distributions for the continuous variables that
 #    actually had missing data. Systematic divergence is not proof of error --

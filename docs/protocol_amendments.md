@@ -435,3 +435,123 @@ and distributional checks on the imputation. A graphics device cannot alter an
 estimate, and the evidence for that here is direct rather than argued: every
 table and the frozen analytic dataset are byte-identical to the committed values
 across both rebuilds.
+
+---
+
+## Amendment 10 — 2026-07-26 — DIAGNOSTIC ARTEFACT DEFECT (figure showed 3 of 11 variables)
+
+**Trigger:** reading `08_mice_convergence.png` against the claim its own script
+makes. The comment above the figure says "Convergence: chains should mix, with no
+trend across iterations", and for most of the imputed variables the artefact could
+not support that statement, because most of them were not in it.
+
+**Defect -- a multi-page lattice plot written to a single-page device.**
+`plot.mids()` draws two panels per imputed variable, the chain mean and the chain
+standard deviation. Eleven variables are imputed here, so it produces 22 panels.
+The call passed `layout = c(2, 4)`, which is 8 panels per page and therefore 3
+pages. A raster device holds one page: lattice drew each page over the last and
+the file retained only the final one. The committed artefact was 6 panels covering
+`bp_med`, `lipid_med` and `tried_lose_wt` -- the last 3 of the 11. Convergence for
+`cmd_score`, `education3`, `pir`, `smoking3`, `alcohol_dpd`, `met_min_wk`,
+`supplement_any` and `diabetes_dx` was never visible.
+
+This is long-standing and **not** a regression from Amendment 9. The pre-migration
+`png()` version of the file contains the same 6 panels; the device swap changed the
+rasteriser, not the pagination. It is recorded as its own defect because it is one,
+and because it sits in the blind spot of the previous amendment: Amendment 9
+established that this figure's *bytes* were reproducible, which is orthogonal to
+whether the figure shows what it claims. A byte-stable artefact can be byte-stably
+wrong, and this one was.
+
+**Change.** The layout is sized to the number of imputed variables so the plot is a
+single page -- two columns (chain mean, chain sd), one row per variable:
+
+| | Before | After |
+|---|---|---|
+| `layout` | `c(2, 4)` | `c(2, length(conv_vars))` = `c(2, 11)` |
+| Pages drawn | 3 (2 overwritten) | 1 |
+| Panels in the file | 6 of 22 | 22 of 22 |
+| Device, inches @ 160 dpi | 12.5 x 8.75 | 12.5 x 24.0625 |
+| Output pixels | 2000 x 1400 | 2000 x 3850 |
+
+Width and resolution are unchanged, and the height scales at the former per-row
+height (8.75 in / 4 rows = 2.1875 in), so every panel keeps its previous size and
+only the page grows. The rendered dimensions were read back out of the PNG header
+rather than inferred from the arithmetic: 2000 x 3850.
+
+The variable count is not hard-coded. It is derived with the same rule
+`plot.mids()` applies internally -- the rows of `chainMean` carrying no `NaN` or
+`NA` -- so the figure stays complete if the missingness pattern changes. Two
+consequences are worth recording, because both were mistakes waiting to be made:
+
+- the count must be computed **before** the device is opened. `plot(imp)` resolves
+  the lattice theme, which starts the default `pdf` device when none is open, so
+  building the trellis object first in order to count its panels deposits an
+  `Rplots.pdf` in the repository root on every build. Verified by doing it: the
+  file appeared.
+- a `stopifnot()` after the object is built re-checks that the panel count is twice
+  the variable count and that the layout holds every panel on one page. If mice's
+  selection rule ever diverges from the rule used to size the device, the build
+  fails instead of silently truncating the figure again. That silent truncation is
+  the failure being fixed, and it persisted for the whole life of the project
+  without anything complaining.
+
+**Newly visible, and one panel is worth recording.** `diabetes_dx` has a single
+imputed cell (0.03% of 3,481 records). Its chain mean therefore alternates between
+the two factor codes, and its chain-sd panel is **empty**, because `chainVar` is
+`NA` throughout when only one cell is imputed. `plot.mids()` selects variables on
+`chainMean` alone, so the variable is plotted while its sd panel has nothing to
+draw. This is a property of the data, not of the fix -- it was equally true before,
+merely on a discarded page. `education3`, `smoking3` and `supplement_any` are
+similarly sparse at 3 imputed cells each. The substantively imputed variables --
+`tried_lose_wt` (482 cells), `pir` (427), `alcohol_dpd` (379), `cmd_score` (350),
+`lipid_med` (133) -- mix without trend across the 20 iterations, which is the first
+time the artefact has actually shown it.
+
+**Verification.** `make all` re-executed scripts 08-19. Scripts 05 and 13 did not
+re-run, their inputs being unchanged, so their artefacts are byte-identical by
+construction rather than by re-derivation -- stated because it makes this a weaker
+check than Amendment 9's two full clean rebuilds, not an equal one.
+`docs/artefact_checksums.csv` and `docs/PROVENANCE.md` were regenerated by
+`19_freeze_provenance.R`, and the result was compared against
+`git show HEAD:docs/artefact_checksums.csv` -- the *committed* values, not the
+working-tree file, for the reason Amendments 8 and 9 both give:
+`19_freeze_provenance.R` rewrites that file during the run, so comparing a run
+against it compares the outputs with themselves and passes vacuously.
+
+**Exactly one of the 66 artefact hashes changed**, and it is
+`figures/08_mice_convergence.png` (957,182 -> 3,748,154 bytes). The other 65 are
+byte-identical, including all 55 tables, all six manuscript figures, the other
+three migrated diagnostics, and the frozen analytic dataset at SHA-256
+`303bcbe0da07eb89...`. Because the imputation itself re-ran, this also re-confirms
+that the seeding is deterministic: 20 chains x 20 iterations reproduced
+byte-identical downstream estimates.
+
+**Determinism of the new figure was tested, not assumed.** Re-rendering it from the
+stored `mids` at the same specification reproduced the artefact's MD5 exactly
+(`61bddb5c148ebc1d...`). The device remains `ragg::agg_png` with Liberation Sans
+named explicitly and dimensions in inches with `res`, so nothing in Amendment 9's
+argument is weakened; the pin is still applied through
+`trellis.par.set(grid.pars = ...)` because this is a lattice figure and trellis
+settings are per-device.
+
+**Estimand affected: none.** This is a diagnostic figure. `08_missing_data.R`
+imputes and diagnoses; it fits no model of scientific interest, and the figure is
+read rather than computed from. The evidence is direct rather than argued: every
+table and the frozen dataset are byte-identical to the committed values across the
+rebuild, and the reported substitution estimates (-0.0300 / -0.0060 / -0.0027 /
+-0.0077 / -0.0234) and calibration results (-0.0646 / 0.3883 / -0.1665) are
+unchanged.
+
+**Scope, and what is not fixed.** The same reasoning applies to any lattice object
+whose panel count can exceed its layout on a one-page device. The sibling call in
+this script, `densityplot(imp, ~ pir + alcohol_dpd + met_min_wk)`, was checked
+rather than assumed: it names three variables and leaves `layout` unset, lattice
+packs all three onto one page, and a re-render at the artefact's own specification
+is byte-identical to the committed `08_observed_vs_imputed.png`, whose three panels
+are all present. No other script prints a multi-panel lattice object to a raster
+device; the manuscript figures in `18_figures.R` are ggplot2 and patchwork, which
+do not paginate. One latent inconsistency is noted without being changed:
+`cont_missing` is computed from the continuous variables that actually have missing
+data, but the `densityplot` formula hard-codes the same three names. They agree
+today only because `energy_kcal` is complete.

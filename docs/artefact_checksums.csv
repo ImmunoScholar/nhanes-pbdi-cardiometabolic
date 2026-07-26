@@ -1,7 +1,7 @@
 "file","bytes","sha256"
 "data/processed/analytic_frozen.rds",4322238,"303bcbe0da07eb89196068d88b25b3c7a110491e9613ecc253a11e6528648969"
 "figures/05_bland_altman_hPDI.png",299743,"e30d9263d79b05a7c8660c2715933929d3c61c4e9cd84fbd5b321caee4fcf6fa"
-"figures/08_mice_convergence.png",957182,"06424fbb3450cb3510fccc756ee44990a51715587ec3107b49a311cdf57b9326"
+"figures/08_mice_convergence.png",3748154,"3d19334d5888e236e846bbe875fc795e3c34ae06ca9e90938d8c4368239acc49"
 "figures/08_observed_vs_imputed.png",244748,"c3667d1b97c949a79773b555a540ffc39311fa12dc62941d634657f53898c689"
 "figures/13_scree.png",81396,"b825391d7bd818e098bb5fe0c4fde2056eb94bed523323a688b31efb1cb45ab7"
 "figures/F1_sensitivity_forest.png",406889,"bea52fc4681ebc1fb30a5af4b0ac73e0c135b8dfe0e4418b635d10e88a536d34"
