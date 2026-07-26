@@ -141,12 +141,46 @@ log_msg("convergence figure: ", length(conv_vars), " imputed variables, ",
 #    MAR implies imputed values may differ -- but a gross shift warrants review.
 cont_missing <- intersect(c("pir", "alcohol_dpd", "met_min_wk", "energy_kcal"),
                           pre$variable[pre$pct_missing > 0])
-# 1800 x 1200 px / 160 dpi.
-ragg::agg_png(file.path(fig_dir, "08_observed_vs_imputed.png"), width = 11.25,
-              height = 7.5, units = "in", res = 160, background = "white")
+stopifnot(length(cont_missing) >= 1L)
+
+# The formula is BUILT from cont_missing rather than naming the variables
+# again. The table below is built from cont_missing, and when the figure's
+# formula was written out by hand the two could describe different variable
+# sets: they agreed only because energy_kcal happens to be complete, and a
+# covariate acquiring missingness would have put it in the table while the
+# figure silently omitted it (Amendment 11). Deriving both from one vector
+# makes that divergence unrepresentable. The filter is also load-bearing, not
+# cosmetic -- densityplot.mids draws the imputed values as a density, so
+# naming a variable with no imputed cells is an error, not an empty panel.
+#
+# Pagination, as for the convergence figure above: a raster device holds one
+# page, so the layout is sized to the panel count -- one panel per variable in
+# a single row -- and the device is sized to the layout. densityplot.mids
+# draws one panel per variable named in the formula, so the count is known
+# from cont_missing before the object exists; the object is built only after
+# the device is open, because resolving a lattice theme with no device open
+# starts the default pdf device and leaves an Rplots.pdf in the repository
+# root (Amendment 10).
+#
+# 11.25 in wide over three panels at 160 dpi as before, so the width scales at
+# the former per-panel width (3.75 in) and the height is unchanged: each panel
+# keeps its former size and only the page grows. 1800 x 1200 px for the three
+# variables with missing data here.
+ragg::agg_png(file.path(fig_dir, "08_observed_vs_imputed.png"),
+              width = 3.75 * length(cont_missing), height = 7.5,
+              units = "in", res = 160, background = "white")
 lattice::trellis.par.set(grid.pars = list(fontfamily = "Liberation Sans"))
-print(densityplot(imp, ~ pir + alcohol_dpd + met_min_wk))
+dens_plot <- densityplot(imp, reformulate(cont_missing),
+                         layout = c(length(cont_missing), 1))
+# Same guard as the convergence figure: fail the build rather than truncate if
+# the panel count ever stops matching the count the device was sized for.
+stopifnot(length(dens_plot$panel.args) == length(cont_missing),
+          prod(dens_plot$layout[1:2]) >= length(dens_plot$panel.args))
+print(dens_plot)
 dev.off()
+log_msg("observed-vs-imputed figure: ", length(cont_missing),
+        " continuous variables with missing data (",
+        paste(cont_missing, collapse = ", "), ") on one page", logfile = logfile)
 
 obs_imp <- do.call(rbind, lapply(cont_missing, function(v) {
   obs <- imp_df[[v]][!is.na(imp_df[[v]])]

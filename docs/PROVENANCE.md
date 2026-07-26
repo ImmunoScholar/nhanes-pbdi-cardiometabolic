@@ -1,6 +1,6 @@
 # Provenance record
 
-Generated: 2026-07-26 12:57:29 UTC
+Generated: 2026-07-26 13:35:54 UTC
 
 ## Study
 
@@ -10,10 +10,10 @@ All reported estimates are associations; no causal effect is estimated.
 
 ## Git
 
-- Commit: `5934d4ad7a88bed7cd6ef4372f6e13f16f489b0a`
+- Commit: `3029bb3108f74345ef548e7eafb831ff36315dc0`
 - Branch: `main`
 - Working tree at freeze: **MODIFIED** (see below)
-  - ` M analysis/08_missing_data.R  M docs/artefact_checksums.csv  M outputs/figures/08_mice_convergence.png`
+  - ` M analysis/08_missing_data.R`
 
 ## Analytic dataset
 
